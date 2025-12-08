@@ -14,7 +14,7 @@ interface MessageInputProps {
 export function MessageInput({
 	onSend,
 	disabled = false,
-	placeholder = "メッセージを入力してください（Shift+Enterで改行）",
+	placeholder = "メッセージを入力してください（⌘+Enterで送信）",
 }: MessageInputProps) {
 	const [message, setMessage] = useState("");
 
@@ -27,8 +27,13 @@ export function MessageInput({
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-		// Enterのみで送信、Shift+Enterで改行
-		if (e.key === "Enter" && !e.shiftKey) {
+		// IME変換中のEnterは無視
+		if (e.isComposing) {
+			return;
+		}
+
+		// Command+Enter (Mac) または Ctrl+Enter (Windows/Linux) で送信
+		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			handleSubmit(e);
 		}

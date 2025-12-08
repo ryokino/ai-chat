@@ -56,18 +56,20 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	}
 
 	return (
-		<Card className="flex h-full flex-col relative">
-			<CardHeader className="border-b">
+		<Card className="flex h-full flex-col">
+			<CardHeader className="border-b shrink-0">
 				<CardTitle>{title}</CardTitle>
 			</CardHeader>
-			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden pb-[120px]">
-				<MessageList
-					messages={messages}
-					className="flex-1"
-					isLoading={isLoading}
-				/>
+			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden relative">
+				<div className="flex-1 overflow-hidden">
+					<MessageList
+						messages={messages}
+						className="h-full pb-[120px]"
+						isLoading={isLoading}
+					/>
+				</div>
 				{error && (
-					<div className="px-4 py-2 text-sm text-destructive bg-destructive/10 flex items-center justify-between">
+					<div className="px-4 py-2 text-sm text-destructive bg-destructive/10 flex items-center justify-between absolute bottom-[120px] left-0 right-0">
 						<span>{error}</span>
 						<button
 							type="button"
@@ -78,14 +80,14 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 						</button>
 					</div>
 				)}
+				<div className="absolute bottom-0 left-0 right-0 bg-background border-t">
+					<MessageInput
+						onSend={sendMessage}
+						disabled={isLoading || !sessionId}
+						placeholder={isLoading ? "送信中..." : "メッセージを入力してください"}
+					/>
+				</div>
 			</CardContent>
-			<div className="absolute bottom-0 left-0 right-0 bg-background border-t">
-				<MessageInput
-					onSend={sendMessage}
-					disabled={isLoading || !sessionId}
-					placeholder={isLoading ? "送信中..." : "メッセージを入力してください"}
-				/>
-			</div>
 		</Card>
 	);
 }
