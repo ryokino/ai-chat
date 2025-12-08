@@ -349,9 +349,9 @@
 - [x] `components/chat/MessageList.tsx` のテスト
   - [x] メッセージ一覧の表示
   - [x] 空状態の表示
-- [ ] `components/chat/ChatWindow.tsx` のテスト
-  - [ ] 統合テスト（MessageList + MessageInput）
-  - [ ] ローディング状態の表示
+- [x] `components/chat/ChatWindow.tsx` のテスト
+  - [x] 統合テスト（MessageList + MessageInput）
+  - [x] ローディング状態の表示
 
 ### 9.3 API Routeテスト
 - [ ] `/api/chat` のテスト
@@ -367,9 +367,9 @@
 - [x] `useChat` フックのテスト
   - [x] メッセージ送信
   - [x] 状態管理
-- [ ] `useSession` フックのテスト
-  - [ ] セッション初期化
-  - [ ] セッション永続化
+- [x] `useSession` フックのテスト (SessionProvider)
+  - [x] セッション初期化
+  - [x] セッション永続化
 
 ### 9.5 E2Eテスト（Playwright - 任意）
 - [ ] Playwrightのセットアップ
