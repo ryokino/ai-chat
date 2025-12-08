@@ -224,7 +224,7 @@
 ## Phase 5: AI/Mastra統合
 
 ### 5.1 Claude API クライアント設定
-- [ ] `lib/claude.ts` を作成
+- [x] `lib/claude.ts` を作成
   ```typescript
   import Anthropic from '@anthropic-ai/sdk'
 
@@ -234,10 +234,10 @@
   ```
 
 ### 5.2 Mastra エージェント設定
-- [ ] `lib/mastra.ts` を作成
-  - [ ] Mastraエージェントの初期化
-  - [ ] Claude統合設定
-  - [ ] システムプロンプトの定義
+- [x] `lib/mastra.ts` を作成
+  - [x] Mastraエージェントの初期化
+  - [x] Claude統合設定
+  - [x] システムプロンプトの定義
 - [ ] エージェントの動作確認用スクリプト作成（任意）
 
 ---
