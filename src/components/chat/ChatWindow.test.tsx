@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as ConversationProvider from "@/components/ConversationProvider";
 import * as SessionProvider from "@/components/SessionProvider";
 import * as useChat from "@/hooks/useChat";
 import { ChatWindow } from "./ChatWindow";
@@ -8,6 +9,11 @@ import { ChatWindow } from "./ChatWindow";
 // SessionProviderのモック
 vi.mock("@/components/SessionProvider", () => ({
 	useSession: vi.fn(),
+}));
+
+// ConversationProviderのモック
+vi.mock("@/components/ConversationProvider", () => ({
+	useConversation: vi.fn(),
 }));
 
 // useChatフックのモック
@@ -19,6 +25,22 @@ vi.mock("@/hooks/useChat", () => ({
 beforeEach(() => {
 	Element.prototype.scrollIntoView = vi.fn();
 	vi.clearAllMocks();
+
+	// Default ConversationProvider mock
+	vi.mocked(ConversationProvider.useConversation).mockReturnValue({
+		conversations: [],
+		isLoading: false,
+		error: null,
+		activeConversationId: null,
+		setActiveConversationId: vi.fn(),
+		createNewConversation: vi.fn(),
+		deleteConversation: vi.fn(),
+		updateTitle: vi.fn(),
+		generateTitle: vi.fn(),
+		refetch: vi.fn(),
+		clearError: vi.fn(),
+		sessionId: "test-session",
+	});
 });
 
 describe("ChatWindow component", () => {
@@ -36,6 +58,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -57,6 +80,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: true,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -87,6 +111,7 @@ describe("ChatWindow component", () => {
 			sendMessage: mockSendMessage,
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -114,6 +139,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: mockClearError,
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -139,6 +165,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -161,6 +188,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);
@@ -183,6 +211,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow title="カスタムタイトル" />);
@@ -211,6 +240,7 @@ describe("ChatWindow component", () => {
 			sendMessage: vi.fn(),
 			clearError: vi.fn(),
 			isInitialLoading: false,
+			clearMessages: vi.fn(),
 		});
 
 		render(<ChatWindow />);

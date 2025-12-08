@@ -5,7 +5,7 @@ import { GET, POST } from "./route";
 vi.mock("@/lib/prisma", () => ({
 	prisma: {
 		conversation: {
-			findFirst: vi.fn(),
+			findMany: vi.fn(),
 			create: vi.fn(),
 		},
 	},
@@ -28,10 +28,10 @@ describe("/api/conversations GET", () => {
 		expect(data.error).toBe("sessionId is required");
 	});
 
-	it("should return empty messages when conversation does not exist", async () => {
+	it("should return empty conversations when none exist", async () => {
 		const { prisma } = await import("@/lib/prisma");
 
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(null);
+		vi.mocked(prisma.conversation.findMany).mockResolvedValue([]);
 
 		const request = new Request(
 			"http://localhost:3000/api/conversations?sessionId=test-session",
@@ -42,38 +42,33 @@ describe("/api/conversations GET", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
-		expect(data.conversation).toBeNull();
-		expect(data.messages).toEqual([]);
+		expect(data.conversations).toEqual([]);
 	});
 
-	it("should return conversation with messages when found", async () => {
+	it("should return conversations list when found", async () => {
 		const { prisma } = await import("@/lib/prisma");
 
-		const mockConversation = {
-			id: "conv-1",
-			sessionId: "test-session",
-			createdAt: new Date("2024-01-01T10:00:00Z"),
-			updatedAt: new Date("2024-01-01T10:05:00Z"),
-			messages: [
-				{
-					id: "msg-1",
-					conversationId: "conv-1",
-					role: "user",
-					content: "Hello",
-					createdAt: new Date("2024-01-01T10:01:00Z"),
-				},
-				{
-					id: "msg-2",
-					conversationId: "conv-1",
-					role: "assistant",
-					content: "Hi there!",
-					createdAt: new Date("2024-01-01T10:02:00Z"),
-				},
-			],
-		};
+		const mockConversations = [
+			{
+				id: "conv-1",
+				sessionId: "test-session",
+				title: "First conversation",
+				createdAt: new Date("2024-01-01T10:00:00Z"),
+				updatedAt: new Date("2024-01-01T10:05:00Z"),
+				_count: { messages: 2 },
+			},
+			{
+				id: "conv-2",
+				sessionId: "test-session",
+				title: null,
+				createdAt: new Date("2024-01-02T10:00:00Z"),
+				updatedAt: new Date("2024-01-02T10:05:00Z"),
+				_count: { messages: 1 },
+			},
+		];
 
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(
-			mockConversation,
+		vi.mocked(prisma.conversation.findMany).mockResolvedValue(
+			mockConversations as any,
 		);
 
 		const request = new Request(
@@ -85,19 +80,18 @@ describe("/api/conversations GET", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
-		expect(data.conversation.id).toBe("conv-1");
-		expect(data.conversation.sessionId).toBe("test-session");
-		expect(data.messages).toHaveLength(2);
-		expect(data.messages[0].role).toBe("user");
-		expect(data.messages[0].content).toBe("Hello");
-		expect(data.messages[1].role).toBe("assistant");
-		expect(data.messages[1].content).toBe("Hi there!");
+		expect(data.conversations).toHaveLength(2);
+		expect(data.conversations[0].id).toBe("conv-1");
+		expect(data.conversations[0].title).toBe("First conversation");
+		expect(data.conversations[0].messageCount).toBe(2);
+		expect(data.conversations[1].id).toBe("conv-2");
+		expect(data.conversations[1].title).toBeNull();
 	});
 
-	it("should query conversation with correct parameters", async () => {
+	it("should query conversations with correct parameters", async () => {
 		const { prisma } = await import("@/lib/prisma");
 
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(null);
+		vi.mocked(prisma.conversation.findMany).mockResolvedValue([]);
 
 		const request = new Request(
 			"http://localhost:3000/api/conversations?sessionId=my-session-id",
@@ -106,70 +100,17 @@ describe("/api/conversations GET", () => {
 
 		await GET(request as any);
 
-		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
+		expect(prisma.conversation.findMany).toHaveBeenCalledWith({
 			where: { sessionId: "my-session-id" },
-			include: {
-				messages: {
-					orderBy: { createdAt: "asc" },
-				},
-			},
+			include: { _count: { select: { messages: true } } },
+			orderBy: { updatedAt: "desc" },
 		});
-	});
-
-	it("should return messages ordered by createdAt ascending", async () => {
-		const { prisma } = await import("@/lib/prisma");
-
-		const mockConversation = {
-			id: "conv-1",
-			sessionId: "test-session",
-			createdAt: new Date("2024-01-01T10:00:00Z"),
-			updatedAt: new Date("2024-01-01T10:05:00Z"),
-			messages: [
-				{
-					id: "msg-1",
-					conversationId: "conv-1",
-					role: "user",
-					content: "First",
-					createdAt: new Date("2024-01-01T10:01:00Z"),
-				},
-				{
-					id: "msg-2",
-					conversationId: "conv-1",
-					role: "assistant",
-					content: "Second",
-					createdAt: new Date("2024-01-01T10:02:00Z"),
-				},
-				{
-					id: "msg-3",
-					conversationId: "conv-1",
-					role: "user",
-					content: "Third",
-					createdAt: new Date("2024-01-01T10:03:00Z"),
-				},
-			],
-		};
-
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(
-			mockConversation,
-		);
-
-		const request = new Request(
-			"http://localhost:3000/api/conversations?sessionId=test-session",
-			{ method: "GET" },
-		);
-
-		const response = await GET(request as any);
-		const data = await response.json();
-
-		expect(data.messages[0].content).toBe("First");
-		expect(data.messages[1].content).toBe("Second");
-		expect(data.messages[2].content).toBe("Third");
 	});
 
 	it("should return 500 on database error", async () => {
 		const { prisma } = await import("@/lib/prisma");
 
-		vi.mocked(prisma.conversation.findFirst).mockRejectedValue(
+		vi.mocked(prisma.conversation.findMany).mockRejectedValue(
 			new Error("Database connection failed"),
 		);
 
@@ -211,11 +152,15 @@ describe("/api/conversations POST", () => {
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "new-session",
+			title: null,
 			createdAt: new Date("2024-01-01T10:00:00Z"),
 			updatedAt: new Date("2024-01-01T10:00:00Z"),
+			_count: { messages: 0 },
 		};
 
-		vi.mocked(prisma.conversation.create).mockResolvedValue(mockConversation);
+		vi.mocked(prisma.conversation.create).mockResolvedValue(
+			mockConversation as any,
+		);
 
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "POST",
@@ -237,11 +182,14 @@ describe("/api/conversations POST", () => {
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session-id",
+			title: null,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
 
-		vi.mocked(prisma.conversation.create).mockResolvedValue(mockConversation);
+		vi.mocked(prisma.conversation.create).mockResolvedValue(
+			mockConversation as any,
+		);
 
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "POST",
@@ -282,11 +230,15 @@ describe("/api/conversations POST", () => {
 		const mockConversation = {
 			id: "conv-123",
 			sessionId: "session-456",
+			title: null,
 			createdAt: new Date("2024-01-01T10:00:00Z"),
 			updatedAt: new Date("2024-01-01T10:00:00Z"),
+			_count: { messages: 0 },
 		};
 
-		vi.mocked(prisma.conversation.create).mockResolvedValue(mockConversation);
+		vi.mocked(prisma.conversation.create).mockResolvedValue(
+			mockConversation as any,
+		);
 
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "POST",

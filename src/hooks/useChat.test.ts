@@ -1,13 +1,14 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as sseClient from "@/lib/sse-client";
 import { useChat } from "./useChat";
 
 // SSEクライアントのモック
 vi.mock("@/lib/sse-client", () => ({
-	fetchConversationHistory: vi.fn(),
+	fetchConversation: vi.fn(),
 	sendChatMessage: vi.fn(),
 	createConversation: vi.fn(),
+	generateConversationTitle: vi.fn(),
 }));
 
 // Sonner toastのモック
@@ -24,16 +25,14 @@ describe("useChat hook", () => {
 	});
 
 	it("should initialize with empty messages and loading state", () => {
-		vi.mocked(sseClient.fetchConversationHistory).mockResolvedValue({
-			messages: [],
-		});
-
-		const { result } = renderHook(() => useChat({ sessionId: "test-session" }));
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: null }),
+		);
 
 		expect(result.current.messages).toEqual([]);
 		expect(result.current.isLoading).toBe(false);
 		expect(result.current.error).toBeNull();
-		expect(result.current.isInitialLoading).toBe(true);
+		expect(result.current.isInitialLoading).toBe(false);
 	});
 
 	it("should load conversation history on mount", async () => {
@@ -52,11 +51,14 @@ describe("useChat hook", () => {
 			},
 		];
 
-		vi.mocked(sseClient.fetchConversationHistory).mockResolvedValue({
+		vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+			conversation: { id: "conv-1", sessionId: "test-session" },
 			messages: mockMessages,
 		});
 
-		const { result } = renderHook(() => useChat({ sessionId: "test-session" }));
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: "conv-1" }),
+		);
 
 		await waitFor(() => {
 			expect(result.current.isInitialLoading).toBe(false);
@@ -68,11 +70,14 @@ describe("useChat hook", () => {
 	});
 
 	it("should handle empty conversation history", async () => {
-		vi.mocked(sseClient.fetchConversationHistory).mockResolvedValue({
+		vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+			conversation: { id: "conv-1", sessionId: "test-session" },
 			messages: [],
 		});
 
-		const { result } = renderHook(() => useChat({ sessionId: "test-session" }));
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: "conv-1" }),
+		);
 
 		await waitFor(() => {
 			expect(result.current.isInitialLoading).toBe(false);
@@ -82,15 +87,9 @@ describe("useChat hook", () => {
 	});
 
 	it("should clear error when clearError is called", async () => {
-		vi.mocked(sseClient.fetchConversationHistory).mockResolvedValue({
-			messages: [],
-		});
-
-		const { result } = renderHook(() => useChat({ sessionId: "test-session" }));
-
-		await waitFor(() => {
-			expect(result.current.isInitialLoading).toBe(false);
-		});
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: null }),
+		);
 
 		// エラーを手動で設定（内部状態を操作するため、実際のエラーをシミュレート）
 		// ここではclearErrorの機能のみをテスト
@@ -100,11 +99,13 @@ describe("useChat hook", () => {
 	});
 
 	it("should handle conversation history loading error gracefully", async () => {
-		vi.mocked(sseClient.fetchConversationHistory).mockRejectedValue(
+		vi.mocked(sseClient.fetchConversation).mockRejectedValue(
 			new Error("Network error"),
 		);
 
-		const { result } = renderHook(() => useChat({ sessionId: "test-session" }));
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: "conv-1" }),
+		);
 
 		await waitFor(() => {
 			expect(result.current.isInitialLoading).toBe(false);
@@ -115,10 +116,40 @@ describe("useChat hook", () => {
 		expect(result.current.messages).toEqual([]);
 	});
 
-	it("should not load history if sessionId is empty", () => {
-		const { result } = renderHook(() => useChat({ sessionId: "" }));
+	it("should not load history if conversationId is null", () => {
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: null }),
+		);
 
-		expect(result.current.isInitialLoading).toBe(true);
-		expect(sseClient.fetchConversationHistory).not.toHaveBeenCalled();
+		expect(result.current.isInitialLoading).toBe(false);
+		expect(sseClient.fetchConversation).not.toHaveBeenCalled();
+	});
+
+	it("should clear messages when clearMessages is called", async () => {
+		vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+			conversation: { id: "conv-1", sessionId: "test-session" },
+			messages: [
+				{
+					id: "1",
+					role: "user",
+					content: "Hello",
+					createdAt: "2024-01-01T12:00:00Z",
+				},
+			],
+		});
+
+		const { result } = renderHook(() =>
+			useChat({ sessionId: "test-session", conversationId: "conv-1" }),
+		);
+
+		await waitFor(() => {
+			expect(result.current.messages).toHaveLength(1);
+		});
+
+		act(() => {
+			result.current.clearMessages();
+		});
+
+		expect(result.current.messages).toEqual([]);
 	});
 });

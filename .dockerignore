@@ -1,0 +1,70 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+.next
+out
+dist
+build
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker
+
+# Version control
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Development files
+*.md
+!README.md
+LICENSE
+.editorconfig
+.prettierrc*
+.eslintrc*
+biome.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Playwright
+.playwright
+.playwright-mcp
+
+# Prisma (migrations are not needed for MongoDB)
+prisma/*.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci

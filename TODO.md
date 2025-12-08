@@ -427,21 +427,24 @@
 ## Phase 11: デプロイ準備
 
 ### 11.1 Dockerfile作成
-- [ ] `Dockerfile` を作成
-  ```dockerfile
-  FROM node:20-alpine AS base
-  # ... ビルドステップ
-  ```
-- [ ] `.dockerignore` を作成
-- [ ] ローカルでDockerビルド確認
+- [x] `Dockerfile` を作成
+  - マルチステージビルド (deps → builder → runner)
+  - Node.js 22 Alpine ベース
+  - standalone 出力モードで最適化
+  - Prisma Client を含む
+  - non-root ユーザーでセキュリティ確保
+- [x] `.dockerignore` を作成
+  - node_modules, .next, テストファイル等を除外
+- [x] ローカルでDockerビルド確認
   ```bash
   docker build -t ai-chat .
-  docker run -p 3000:3000 ai-chat
+  docker run -p 3000:3000 -e DATABASE_URL="..." -e ANTHROPIC_API_KEY="..." ai-chat
   ```
+  ※ Docker Daemon起動が必要
 
 ### 11.2 Google Cloud設定
-- [ ] GCPプロジェクトを作成
-- [ ] gcloud CLIのインストールと認証
+- [x] GCPプロジェクトを作成
+- [ ] gcloud CLIのインストールと認証 ([userメモ] プロジェクトid: ai-chat-with-cc, プロジェクト 番号: 692287575404)
   ```bash
   gcloud auth login
   gcloud config set project [PROJECT_ID]
@@ -510,25 +513,86 @@
 - [ ] 主要な関数にJSDocコメント追加
 - [ ] 複雑なロジックにコメント追加
 
-### 13.3 API仕様書（任意）
+### 13.3 API仕様書
 - [ ] OpenAPI/Swagger形式でAPI仕様を記述
 
 ---
 
-## Phase 14: 追加機能（オプション）
+## Phase 14: 会話管理機能（サイドバー）
 
-### 14.1 会話管理機能
-- [ ] 会話リストの表示
-- [ ] 新しい会話の作成
-- [ ] 会話の削除
-- [ ] 会話のタイトル自動生成
+### 14.1 データモデル変更
+- [x] Conversation モデルに `title` フィールドを追加
+- [x] Prisma Client を再生成（`npx prisma generate && npx prisma db push`）
 
-### 14.2 設定機能
+### 14.2 API ルート変更・追加
+- [x] `GET /api/conversations` を変更: 会話一覧を返す（現在は単一会話のみ）
+- [x] `app/api/conversations/[id]/route.ts` を新規作成
+  - [x] GET: 特定の会話とメッセージを取得
+  - [x] DELETE: 会話を削除
+  - [x] PATCH: タイトルを更新
+- [x] `app/api/conversations/generate-title/route.ts` を新規作成
+  - [x] POST: 最初のメッセージからAIでタイトルを自動生成
+- [x] `/api/chat` を変更: `conversationId` パラメータを追加
+
+### 14.3 shadcn/ui コンポーネント追加
+- [x] 必要なコンポーネントをインストール
+  ```bash
+  npx shadcn@latest add sheet dropdown-menu dialog alert-dialog separator tooltip
+  ```
+
+### 14.4 サイドバーコンポーネント作成
+- [x] `src/components/sidebar/AppSidebar.tsx` - サイドバー本体
+- [x] `src/components/sidebar/ConversationList.tsx` - 会話リスト
+- [x] `src/components/sidebar/ConversationItem.tsx` - 会話アイテム（編集・削除機能付き）
+- [x] `src/components/sidebar/NewConversationButton.tsx` - 新規会話ボタン
+- [x] shadcn/ui Sidebar コンポーネントでトグル機能を実装
+
+### 14.5 レイアウトコンポーネント作成
+- [x] `src/components/layout/AppLayout.tsx` - サイドバー + メインコンテンツのレイアウト
+- [x] `src/components/ConversationProvider.tsx` - 会話状態管理のContext
+
+### 14.6 カスタムフック作成・更新
+- [x] `src/hooks/useConversations.ts` を新規作成
+  - 会話一覧の取得・作成・削除・タイトル更新
+- [x] `src/hooks/useChat.ts` を変更
+  - `conversationId` パラメータ対応
+
+### 14.7 SSEクライアント更新
+- [x] `src/lib/sse-client.ts` に追加
+  - `fetchConversations()` - 会話一覧取得
+  - `fetchConversation()` - 単一会話取得
+  - `deleteConversation()` - 会話削除
+  - `updateConversationTitle()` - タイトル更新
+  - `generateConversationTitle()` - タイトル自動生成
+
+### 14.8 ページ・レイアウト更新
+- [x] `app/page.tsx` を変更 - AppLayout統合
+- [x] `app/layout.tsx` を変更 - ConversationProvider追加
+
+### 14.9 レスポンシブデザイン実装
+- [x] デスクトップ: サイドバー常時表示（折りたたみ可能、幅280px/60px）
+- [x] モバイル: ハンバーガーメニュー（Sheetで左からスライド）
+
+### 14.10 タイトル自動生成機能
+- [x] 最初のメッセージ送信後にタイトルを自動生成
+- [x] 生成プロンプトはメッセージと同じ言語でタイトルを生成
+
+### 14.11 テスト
+- [x] コンポーネントテスト（ChatWindow, useChat, conversations/route, chat/route）
+- [x] APIテスト（conversations/[id], generate-title）
+- [x] E2Eテスト（会話作成・切替・削除確認ダイアログ・タイトル編集）
+  - Playwright MCP で実施完了
+
+---
+
+## Phase 15: 追加機能（オプション）
+
+### 15.1 設定機能
 - [ ] AIのパーソナリティ設定
 - [ ] レスポンス長の設定
 - [ ] テーマ切り替え（ライト/ダーク）
 
-### 14.3 エクスポート機能
+### 15.2 エクスポート機能
 - [ ] 会話履歴のJSON/Markdownエクスポート
 - [ ] 会話履歴のPDFエクスポート
 

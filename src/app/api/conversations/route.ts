@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/conversations
- * セッションIDから会話履歴を取得
+ * セッションIDから会話一覧を取得
  */
 export async function GET(request: NextRequest) {
 	try {
@@ -19,39 +19,26 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		// セッションIDに紐づく会話を取得
-		const conversation = await prisma.conversation.findFirst({
+		// セッションIDに紐づく全ての会話を取得
+		const conversations = await prisma.conversation.findMany({
 			where: { sessionId },
 			include: {
-				messages: {
-					orderBy: { createdAt: "asc" },
+				_count: {
+					select: { messages: true },
 				},
 			},
+			orderBy: { updatedAt: "desc" },
 		});
-
-		if (!conversation) {
-			return new Response(
-				JSON.stringify({ conversation: null, messages: [] }),
-				{
-					status: 200,
-					headers: { "Content-Type": "application/json" },
-				},
-			);
-		}
 
 		return new Response(
 			JSON.stringify({
-				conversation: {
-					id: conversation.id,
-					sessionId: conversation.sessionId,
-					createdAt: conversation.createdAt,
-					updatedAt: conversation.updatedAt,
-				},
-				messages: conversation.messages.map((msg) => ({
-					id: msg.id,
-					role: msg.role,
-					content: msg.content,
-					createdAt: msg.createdAt,
+				conversations: conversations.map((conv) => ({
+					id: conv.id,
+					sessionId: conv.sessionId,
+					title: conv.title,
+					messageCount: conv._count.messages,
+					createdAt: conv.createdAt,
+					updatedAt: conv.updatedAt,
 				})),
 			}),
 			{

@@ -7,6 +7,26 @@ export interface SSEOptions {
 	onMessage?: (data: string) => void;
 	onError?: (error: Error) => void;
 	onComplete?: () => void;
+	onConversationInfo?: (info: {
+		conversationId: string;
+		isNewConversation: boolean;
+	}) => void;
+}
+
+export interface ConversationSummary {
+	id: string;
+	sessionId: string;
+	title: string | null;
+	messageCount: number;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface Message {
+	id: string;
+	role: "user" | "assistant";
+	content: string;
+	createdAt: string;
 }
 
 /**
@@ -18,7 +38,7 @@ export async function processSSEStream(
 	response: Response,
 	options: SSEOptions = {},
 ): Promise<void> {
-	const { onMessage, onError, onComplete } = options;
+	const { onMessage, onError, onComplete, onConversationInfo } = options;
 
 	if (!response.ok) {
 		const error = new Error(`HTTP error! status: ${response.status}`);
@@ -64,16 +84,26 @@ export async function processSSEStream(
 					}
 
 					// データが空でない場合のみコールバックを呼ぶ
-					if (data && onMessage) {
+					if (data) {
 						try {
-							onMessage(data);
-						} catch (error) {
-							console.error("Error in onMessage callback:", error);
-							onError?.(
-								error instanceof Error
-									? error
-									: new Error("Unknown error in callback"),
-							);
+							const parsed = JSON.parse(data);
+
+							// conversationInfo を処理
+							if (
+								parsed.conversationId &&
+								typeof parsed.isNewConversation === "boolean"
+							) {
+								onConversationInfo?.(parsed);
+							} else if (parsed.content !== undefined) {
+								// 通常のメッセージコンテンツ
+								onMessage?.(data);
+							} else if (parsed.error) {
+								// エラーメッセージ
+								onError?.(new Error(parsed.error));
+							}
+						} catch {
+							// JSONパースに失敗した場合は生データとして処理
+							onMessage?.(data);
 						}
 					}
 				}
@@ -95,11 +125,13 @@ export async function processSSEStream(
  * チャットメッセージをストリーミング送信
  * @param message - 送信するメッセージ
  * @param sessionId - セッションID
+ * @param conversationId - 会話ID（オプション、指定しない場合は新規作成）
  * @param options - SSEオプション
  */
 export async function sendChatMessage(
 	message: string,
 	sessionId: string,
+	conversationId: string | null,
 	options: SSEOptions = {},
 ): Promise<void> {
 	const response = await fetch("/api/chat", {
@@ -110,6 +142,7 @@ export async function sendChatMessage(
 		body: JSON.stringify({
 			message,
 			sessionId,
+			...(conversationId && { conversationId }),
 		}),
 	});
 
@@ -117,10 +150,12 @@ export async function sendChatMessage(
 }
 
 /**
- * 会話履歴を取得
+ * 会話一覧を取得
  * @param sessionId - セッションID
  */
-export async function fetchConversationHistory(sessionId: string) {
+export async function fetchConversations(
+	sessionId: string,
+): Promise<{ conversations: ConversationSummary[] }> {
 	const response = await fetch(
 		`/api/conversations?sessionId=${encodeURIComponent(sessionId)}`,
 		{
@@ -132,18 +167,48 @@ export async function fetchConversationHistory(sessionId: string) {
 	);
 
 	if (!response.ok) {
-		throw new Error(`Failed to fetch conversation history: ${response.status}`);
+		throw new Error(`Failed to fetch conversations: ${response.status}`);
 	}
 
-	const data = await response.json();
-	return data;
+	return response.json();
+}
+
+/**
+ * 特定の会話とメッセージを取得
+ * @param conversationId - 会話ID
+ * @param sessionId - セッションID
+ */
+export async function fetchConversation(
+	conversationId: string,
+	sessionId: string,
+): Promise<{
+	conversation: ConversationSummary;
+	messages: Message[];
+}> {
+	const response = await fetch(
+		`/api/conversations/${conversationId}?sessionId=${encodeURIComponent(sessionId)}`,
+		{
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		},
+	);
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch conversation: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 /**
  * 新しい会話セッションを作成
  * @param sessionId - セッションID
  */
-export async function createConversation(sessionId: string) {
+export async function createConversation(
+	sessionId: string,
+): Promise<{ conversation: ConversationSummary }> {
 	const response = await fetch("/api/conversations", {
 		method: "POST",
 		headers: {
@@ -156,6 +221,77 @@ export async function createConversation(sessionId: string) {
 		throw new Error(`Failed to create conversation: ${response.status}`);
 	}
 
-	const data = await response.json();
-	return data;
+	return response.json();
+}
+
+/**
+ * 会話を削除
+ * @param conversationId - 会話ID
+ * @param sessionId - セッションID
+ */
+export async function deleteConversation(
+	conversationId: string,
+	sessionId: string,
+): Promise<void> {
+	const response = await fetch(`/api/conversations/${conversationId}`, {
+		method: "DELETE",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ sessionId }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to delete conversation: ${response.status}`);
+	}
+}
+
+/**
+ * 会話タイトルを更新
+ * @param conversationId - 会話ID
+ * @param sessionId - セッションID
+ * @param title - 新しいタイトル
+ */
+export async function updateConversationTitle(
+	conversationId: string,
+	sessionId: string,
+	title: string,
+): Promise<{ conversation: ConversationSummary }> {
+	const response = await fetch(`/api/conversations/${conversationId}`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ sessionId, title }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to update conversation title: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * タイトルを自動生成
+ * @param conversationId - 会話ID
+ * @param sessionId - セッションID
+ */
+export async function generateConversationTitle(
+	conversationId: string,
+	sessionId: string,
+): Promise<{ title: string }> {
+	const response = await fetch("/api/conversations/generate-title", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ conversationId, sessionId }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to generate title: ${response.status}`);
+	}
+
+	return response.json();
 }

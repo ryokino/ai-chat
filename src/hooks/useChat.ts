@@ -2,11 +2,18 @@ import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { MessageProps } from "@/components/chat/Message";
-import { fetchConversationHistory, sendChatMessage } from "@/lib/sse-client";
+import {
+	fetchConversation,
+	generateConversationTitle,
+	sendChatMessage,
+} from "@/lib/sse-client";
 
 export interface UseChatOptions {
 	sessionId: string;
+	conversationId: string | null;
 	onError?: (error: Error) => void;
+	onNewConversation?: (conversationId: string) => void;
+	onTitleGenerated?: () => void;
 }
 
 export interface UseChatReturn {
@@ -16,26 +23,37 @@ export interface UseChatReturn {
 	sendMessage: (content: string) => Promise<void>;
 	clearError: () => void;
 	isInitialLoading: boolean;
+	clearMessages: () => void;
 }
 
 /**
  * チャット機能のカスタムフック
  * メッセージの送受信、会話履歴の読み込みを管理
  */
-export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
+export function useChat({
+	sessionId,
+	conversationId,
+	onError,
+	onNewConversation,
+	onTitleGenerated,
+}: UseChatOptions): UseChatReturn {
 	const [messages, setMessages] = useState<MessageProps[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [isInitialLoading, setIsInitialLoading] = useState(true);
+	const [isInitialLoading, setIsInitialLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// 初回ロード時に会話履歴を取得
+	// 会話履歴を取得
 	useEffect(() => {
-		if (!sessionId) return;
+		if (!sessionId || !conversationId) {
+			setMessages([]);
+			setIsInitialLoading(false);
+			return;
+		}
 
 		const loadHistory = async () => {
 			try {
 				setIsInitialLoading(true);
-				const data = await fetchConversationHistory(sessionId);
+				const data = await fetchConversation(conversationId, sessionId);
 
 				if (data.messages && Array.isArray(data.messages)) {
 					const loadedMessages: MessageProps[] = data.messages.map(
@@ -62,7 +80,11 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 		};
 
 		loadHistory();
-	}, [sessionId]);
+	}, [sessionId, conversationId]);
+
+	const clearMessages = useCallback(() => {
+		setMessages([]);
+	}, []);
 
 	const clearError = useCallback(() => {
 		setError(null);
@@ -100,7 +122,7 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 				]);
 
 				// SSEストリーミングでメッセージを送信
-				await sendChatMessage(content.trim(), sessionId, {
+				await sendChatMessage(content.trim(), sessionId, conversationId, {
 					onMessage: (data: string) => {
 						try {
 							const parsed = JSON.parse(data);
@@ -120,6 +142,21 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 							}
 						} catch (parseError) {
 							console.error("Error parsing SSE data:", parseError);
+						}
+					},
+					onConversationInfo: async (info) => {
+						// 新しい会話が作成された場合、コールバックを呼ぶ
+						if (info.isNewConversation && onNewConversation) {
+							onNewConversation(info.conversationId);
+
+							// タイトルを自動生成
+							try {
+								await generateConversationTitle(info.conversationId, sessionId);
+								onTitleGenerated?.();
+							} catch (titleErr) {
+								console.error("Failed to generate title:", titleErr);
+								// タイトル生成の失敗は致命的ではないのでエラーを表示しない
+							}
 						}
 					},
 					onError: (err: Error) => {
@@ -160,7 +197,14 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 				setIsLoading(false);
 			}
 		},
-		[sessionId, isLoading, onError],
+		[
+			sessionId,
+			conversationId,
+			isLoading,
+			onError,
+			onNewConversation,
+			onTitleGenerated,
+		],
 	);
 
 	return {
@@ -170,5 +214,6 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 		sendMessage,
 		clearError,
 		isInitialLoading,
+		clearMessages,
 	};
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import dynamic from "next/dynamic";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 // ChatWindowを遅延読み込み
 const ChatWindow = dynamic(
@@ -17,8 +20,10 @@ const ChatWindow = dynamic(
 
 export default function Home() {
 	return (
-		<main className="flex min-h-screen flex-col">
-			<ChatWindow title="AI Chat Bot" />
-		</main>
+		<AppLayout>
+			<div className="flex h-[calc(100vh-56px)] flex-col md:h-screen">
+				<ChatWindow title="AI Chat Bot" />
+			</div>
+		</AppLayout>
 	);
 }

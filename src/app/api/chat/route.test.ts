@@ -68,20 +68,19 @@ describe("/api/chat POST", () => {
 		expect(data.error).toBe("Message and sessionId are required");
 	});
 
-	it("should create conversation if it does not exist", async () => {
+	it("should create conversation if conversationId is not provided", async () => {
 		const { prisma } = await import("@/lib/prisma");
 		const { chatAgent } = await import("@/lib/mastra");
 
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session",
+			title: null,
 			messages: [],
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
 
-		// Mock conversation not found, then created
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(null);
 		vi.mocked(prisma.conversation.create).mockResolvedValue(mockConversation);
 		vi.mocked(prisma.message.create).mockResolvedValue({
 			id: "msg-1",
@@ -120,13 +119,14 @@ describe("/api/chat POST", () => {
 		});
 	});
 
-	it("should use existing conversation if found", async () => {
+	it("should use existing conversation if conversationId is provided", async () => {
 		const { prisma } = await import("@/lib/prisma");
 		const { chatAgent } = await import("@/lib/mastra");
 
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session",
+			title: null,
 			messages: [
 				{
 					id: "msg-0",
@@ -165,6 +165,7 @@ describe("/api/chat POST", () => {
 			body: JSON.stringify({
 				message: "Hello",
 				sessionId: "test-session",
+				conversationId: "conv-1",
 			}),
 		});
 
@@ -173,7 +174,7 @@ describe("/api/chat POST", () => {
 		expect(response.status).toBe(200);
 		expect(prisma.conversation.create).not.toHaveBeenCalled();
 		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
-			where: { sessionId: "test-session" },
+			where: { id: "conv-1", sessionId: "test-session" },
 			include: { messages: true },
 		});
 	});
@@ -185,6 +186,7 @@ describe("/api/chat POST", () => {
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session",
+			title: null,
 			messages: [],
 			createdAt: new Date(),
 			updatedAt: new Date(),
@@ -215,6 +217,7 @@ describe("/api/chat POST", () => {
 			body: JSON.stringify({
 				message: "Test message",
 				sessionId: "test-session",
+				conversationId: "conv-1",
 			}),
 		});
 
@@ -236,6 +239,7 @@ describe("/api/chat POST", () => {
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session",
+			title: null,
 			messages: [],
 			createdAt: new Date(),
 			updatedAt: new Date(),
@@ -268,6 +272,7 @@ describe("/api/chat POST", () => {
 			body: JSON.stringify({
 				message: "Hello",
 				sessionId: "test-session",
+				conversationId: "conv-1",
 			}),
 		});
 
@@ -308,6 +313,7 @@ describe("/api/chat POST", () => {
 		const mockConversation = {
 			id: "conv-1",
 			sessionId: "test-session",
+			title: null,
 			messages: [],
 			createdAt: new Date(),
 			updatedAt: new Date(),
@@ -345,6 +351,7 @@ describe("/api/chat POST", () => {
 			body: JSON.stringify({
 				message: "Test",
 				sessionId: "test-session",
+				conversationId: "conv-1",
 			}),
 		});
 
@@ -373,10 +380,32 @@ describe("/api/chat POST", () => {
 		});
 	});
 
+	it("should return 404 when conversationId is provided but not found", async () => {
+		const { prisma } = await import("@/lib/prisma");
+
+		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(null);
+
+		const request = new Request("http://localhost:3000/api/chat", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				message: "Hello",
+				sessionId: "test-session",
+				conversationId: "non-existent",
+			}),
+		});
+
+		const response = await POST(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(404);
+		expect(data.error).toBe("Conversation not found");
+	});
+
 	it("should return 500 on internal error", async () => {
 		const { prisma } = await import("@/lib/prisma");
 
-		vi.mocked(prisma.conversation.findFirst).mockRejectedValue(
+		vi.mocked(prisma.conversation.create).mockRejectedValue(
 			new Error("Database error"),
 		);
 

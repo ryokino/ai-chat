@@ -1,5 +1,6 @@
 "use client";
 
+import { useConversation } from "@/components/ConversationProvider";
 import { useSession } from "@/components/SessionProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useChat } from "@/hooks/useChat";
@@ -12,6 +13,11 @@ interface ChatWindowProps {
 
 export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	const { sessionId, isLoading: isSessionLoading } = useSession();
+	const {
+		activeConversationId,
+		setActiveConversationId,
+		refetch: refetchConversations,
+	} = useConversation();
 
 	const {
 		messages,
@@ -22,8 +28,17 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 		isInitialLoading,
 	} = useChat({
 		sessionId: sessionId || "",
+		conversationId: activeConversationId,
 		onError: (err) => {
 			console.error("Chat error:", err);
+		},
+		onNewConversation: (newConversationId) => {
+			setActiveConversationId(newConversationId);
+			refetchConversations();
+		},
+		onTitleGenerated: () => {
+			// タイトル生成後に会話一覧を更新
+			refetchConversations();
 		},
 	});
 

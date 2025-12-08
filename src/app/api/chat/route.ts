@@ -13,12 +13,23 @@ export const dynamic = "force-dynamic";
 interface ChatRequestBody {
 	message: string;
 	sessionId: string;
+	conversationId?: string;
 }
+
+// Type for conversation with messages included
+type ConversationWithMessages = {
+	id: string;
+	sessionId: string;
+	title: string | null;
+	messages: { id: string; role: string; content: string; createdAt: Date }[];
+	createdAt: Date;
+	updatedAt: Date;
+};
 
 export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;
-		const { message, sessionId } = body;
+		const { message, sessionId, conversationId } = body;
 
 		if (!message || !sessionId) {
 			return new Response(
@@ -46,12 +57,27 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Get or create conversation
-		let conversation = await prisma.conversation.findFirst({
-			where: { sessionId },
-			include: { messages: true },
-		});
+		let conversation: ConversationWithMessages;
 
-		if (!conversation) {
+		if (conversationId) {
+			// 既存の会話を取得（セッションIDで検証）
+			const existingConversation = await prisma.conversation.findFirst({
+				where: { id: conversationId, sessionId },
+				include: { messages: true },
+			});
+
+			if (!existingConversation) {
+				return new Response(
+					JSON.stringify({ error: "Conversation not found" }),
+					{
+						status: 404,
+						headers: { "Content-Type": "application/json" },
+					},
+				);
+			}
+			conversation = existingConversation;
+		} else {
+			// 新しい会話を作成
 			conversation = await prisma.conversation.create({
 				data: { sessionId },
 				include: { messages: true },
@@ -104,6 +130,13 @@ export async function POST(request: NextRequest) {
 							content: fullResponse,
 						},
 					});
+
+					// Send conversation info (useful when new conversation is created)
+					const infoData = JSON.stringify({
+						conversationId: conversation.id,
+						isNewConversation: !conversationId,
+					});
+					controller.enqueue(encoder.encode(`data: ${infoData}\n\n`));
 
 					// Send done signal
 					controller.enqueue(encoder.encode("data: [DONE]\n\n"));
