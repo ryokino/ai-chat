@@ -37,9 +37,9 @@
 - **クライアント**: Prisma Client (MongoDB connector)
 
 ### デプロイ
-- **プラットフォーム**: Google Cloud
-  - 推奨: Cloud Run (コンテナベースデプロイ)
-  - または App Engine
+- **プラットフォーム**: Raspberry Pi (自宅サーバー)
+  - Cloudflare Tunnel 経由で外部公開
+  - GitHub Actions + Watchtower で自動デプロイ
 
 ---
 
@@ -224,16 +224,32 @@ SESSION_SECRET=your_random_secret_key
 
 ## デプロイ
 
-### Google Cloud Run デプロイ手順
-1. Dockerfileを作成
-2. `gcloud builds submit` でイメージをビルド
-3. `gcloud run deploy` でデプロイ
-4. 環境変数をCloud Runコンソールで設定
+### デプロイアーキテクチャ
+```
+[GitHub main branch push]
+        ↓
+[GitHub Actions]
+  - ARM64 Docker イメージビルド
+  - ghcr.io へ push
+        ↓
+[Raspberry Pi - Watchtower]
+  - 5分ごとにイメージ更新チェック
+  - 新イメージがあれば自動 pull & 再起動
+        ↓
+[Cloudflare Tunnel]
+  - 外部公開（ポート開放不要）
+```
 
-### 必要なGCPサービス
-- Cloud Run (アプリケーションホスティング)
-- Secret Manager (APIキー管理)
-- Cloud Build (CI/CD)
+### Raspberry Pi デプロイ手順
+1. `docker-compose.raspi.yml` を Raspi にコピー
+2. `.env` ファイルに環境変数を設定
+3. ghcr.io に認証: `docker login ghcr.io`
+4. `docker compose up -d` で起動
+
+### 必要なサービス
+- GitHub Container Registry (イメージホスティング)
+- Cloudflare Tunnel (外部公開)
+- MongoDB Atlas (データベース)
 
 ---
 

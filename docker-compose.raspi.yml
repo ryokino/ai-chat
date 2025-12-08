@@ -1,0 +1,41 @@
+# Raspberry Pi deployment configuration
+# Copy this file to your Raspberry Pi and rename to docker-compose.yml
+#
+# Setup:
+# 1. Create .env file with DATABASE_URL and ANTHROPIC_API_KEY
+# 2. Login to ghcr.io: echo $GITHUB_PAT | docker login ghcr.io -u USERNAME --password-stdin
+# 3. Run: docker compose up -d
+
+services:
+  ai-chat:
+    image: ghcr.io/ryokino/ai-chat:latest
+    container_name: ai-chat
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - NODE_ENV=production
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/${USER}/.docker/config.json:/config.json:ro
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+    command: --interval 300

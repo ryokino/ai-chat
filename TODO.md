@@ -424,7 +424,7 @@
 
 ---
 
-## Phase 11: デプロイ準備
+## Phase 11: デプロイ準備（Raspberry Pi + GitHub Actions）
 
 ### 11.1 Dockerfile作成
 - [x] `Dockerfile` を作成
@@ -440,62 +440,62 @@
   docker build -t ai-chat .
   docker run -p 3000:3000 -e DATABASE_URL="..." -e ANTHROPIC_API_KEY="..." ai-chat
   ```
-  ※ Docker Daemon起動が必要
 
-### 11.2 Google Cloud設定
-- [x] GCPプロジェクトを作成
-- [ ] gcloud CLIのインストールと認証 ([userメモ] プロジェクトid: ai-chat-with-cc, プロジェクト 番号: 692287575404)
-  ```bash
-  gcloud auth login
-  gcloud config set project [PROJECT_ID]
-  ```
-- [ ] Artifact Registryのセットアップ
-  ```bash
-  gcloud artifacts repositories create ai-chat-repo --repository-format=docker --location=asia-northeast1
-  ```
+### 11.2 GitHub Actions ワークフロー作成
+- [x] `.github/workflows/deploy.yml` を作成
+  - main ブランチへの push 時にトリガー
+  - QEMU + Buildx で ARM64 イメージをビルド
+  - ghcr.io (GitHub Container Registry) へ push
+  - キャッシュ設定でビルド高速化
 
-### 11.3 環境変数とシークレット管理
-- [ ] Secret Managerで環境変数を設定
-  ```bash
-  echo -n "your-api-key" | gcloud secrets create anthropic-api-key --data-file=-
-  ```
-- [ ] Cloud Runサービスアカウントの権限設定
+### 11.3 Raspberry Pi 用 docker-compose 作成
+- [x] `docker-compose.raspi.yml` を作成
+  - ai-chat サービス（ghcr.io からイメージ取得）
+  - Watchtower サービス（5分ごとにイメージ更新チェック）
+  - ヘルスチェック設定
 
 ---
 
-## Phase 12: デプロイ
+## Phase 12: Raspberry Pi デプロイ
 
-### 12.1 初回デプロイ
-- [ ] イメージをビルドしてArtifact Registryにプッシュ
+### 12.1 Raspberry Pi セットアップ
+- [ ] ghcr.io への認証設定
   ```bash
-  gcloud builds submit --tag asia-northeast1-docker.pkg.dev/[PROJECT_ID]/ai-chat-repo/ai-chat
+  # GitHub Personal Access Token (read:packages 権限) を作成
+  echo $GITHUB_PAT | docker login ghcr.io -u USERNAME --password-stdin
   ```
-- [ ] Cloud Runにデプロイ
+- [ ] docker-compose.yml と .env ファイルを配置
   ```bash
-  gcloud run deploy ai-chat \
-    --image asia-northeast1-docker.pkg.dev/[PROJECT_ID]/ai-chat-repo/ai-chat \
-    --platform managed \
-    --region asia-northeast1 \
-    --allow-unauthenticated
+  # docker-compose.raspi.yml を docker-compose.yml にリネームしてコピー
+  # .env ファイルに DATABASE_URL と ANTHROPIC_API_KEY を設定
   ```
-- [ ] 環境変数を設定
+- [ ] Cloudflare Tunnel で localhost:3000 を公開
   ```bash
-  gcloud run services update ai-chat \
-    --update-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest \
-    --set-env-vars DATABASE_URL=[MONGODB_URL]
+  # cloudflared config.yml に追加:
+  # - hostname: your-domain.com
+  #   service: http://localhost:3000
   ```
 
-### 12.2 本番環境での動作確認
-- [ ] デプロイされたURLにアクセス
+### 12.2 初回デプロイ
+- [ ] コンテナを起動
+  ```bash
+  docker compose up -d
+  ```
+- [ ] Watchtower のログ確認
+  ```bash
+  docker logs watchtower
+  ```
+
+### 12.3 本番環境での動作確認
+- [ ] Cloudflare Tunnel 経由でアクセス
 - [ ] チャット機能の動作確認
 - [ ] ストリーミングの動作確認
 - [ ] 会話履歴の保存確認
-- [ ] エラーログの確認（Cloud Logging）
+- [ ] 自動更新のテスト（main に push して5分後に反映されるか）
 
-### 12.3 監視とアラート設定
-- [ ] Cloud Monitoringでメトリクス確認
-- [ ] エラーレートのアラート設定
-- [ ] コスト監視の設定
+### 12.4 監視設定
+- [ ] docker logs でアプリログ確認
+- [ ] Cloudflare Analytics でアクセス状況確認
 
 ---
 
