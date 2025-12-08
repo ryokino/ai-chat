@@ -7,9 +7,14 @@ import { Message, type MessageProps } from "./Message";
 interface MessageListProps {
 	messages: MessageProps[];
 	className?: string;
+	isLoading?: boolean;
 }
 
-export function MessageList({ messages, className }: MessageListProps) {
+export function MessageList({
+	messages,
+	className,
+	isLoading = false,
+}: MessageListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: messages.length is intentionally used to trigger scroll on new messages
@@ -39,6 +44,33 @@ export function MessageList({ messages, className }: MessageListProps) {
 						createdAt={message.createdAt}
 					/>
 				))}
+				{isLoading && (
+					<div className="flex gap-3 p-4">
+						<div className="flex items-center gap-2 text-muted-foreground">
+							<div className="flex gap-1">
+								<span
+									className="animate-bounce"
+									style={{ animationDelay: "0ms" }}
+								>
+									●
+								</span>
+								<span
+									className="animate-bounce"
+									style={{ animationDelay: "150ms" }}
+								>
+									●
+								</span>
+								<span
+									className="animate-bounce"
+									style={{ animationDelay: "300ms" }}
+								>
+									●
+								</span>
+							</div>
+							<span className="text-sm">送信中...</span>
+						</div>
+					</div>
+				)}
 				<div ref={bottomRef} />
 			</div>
 		</ScrollArea>

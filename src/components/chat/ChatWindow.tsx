@@ -61,7 +61,11 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 				<CardTitle>{title}</CardTitle>
 			</CardHeader>
 			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
-				<MessageList messages={messages} className="flex-1" />
+				<MessageList
+					messages={messages}
+					className="flex-1"
+					isLoading={isLoading}
+				/>
 				{error && (
 					<div className="px-4 py-2 text-sm text-destructive bg-destructive/10 flex items-center justify-between">
 						<span>{error}</span>

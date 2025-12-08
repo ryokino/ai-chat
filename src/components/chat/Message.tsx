@@ -23,9 +23,12 @@ export function Message({ role, content, createdAt }: MessageProps) {
 
 	return (
 		<div
-			className={cn("flex gap-3 p-4", isUser ? "flex-row-reverse" : "flex-row")}
+			className={cn(
+				"flex gap-3 p-4 px-4 sm:px-6",
+				isUser ? "flex-row-reverse" : "flex-row",
+			)}
 		>
-			<Avatar className="h-8 w-8 shrink-0">
+			<Avatar className="h-8 w-8 shrink-0 hidden sm:flex">
 				{isUser ? (
 					<AvatarFallback className="bg-primary text-primary-foreground">
 						<User className="h-4 w-4" />
@@ -38,7 +41,7 @@ export function Message({ role, content, createdAt }: MessageProps) {
 			</Avatar>
 			<div
 				className={cn(
-					"flex max-w-[80%] flex-col gap-1",
+					"flex max-w-[95%] sm:max-w-[85%] md:max-w-[80%] flex-col gap-1",
 					isUser ? "items-end" : "items-start",
 				)}
 			>

@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { MessageProps } from "@/components/chat/Message";
 import { fetchConversationHistory, sendChatMessage } from "@/lib/sse-client";
 
@@ -126,6 +127,9 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 						const errorMessage =
 							err.message || "メッセージの送信に失敗しました";
 						setError(errorMessage);
+						toast.error("エラーが発生しました", {
+							description: errorMessage,
+						});
 						onError?.(err);
 
 						// エラー時はアシスタントメッセージを削除
@@ -141,6 +145,9 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 				const errorMessage =
 					err instanceof Error ? err.message : "エラーが発生しました";
 				setError(errorMessage);
+				toast.error("エラーが発生しました", {
+					description: errorMessage,
+				});
 				onError?.(
 					err instanceof Error ? err : new Error("Unknown error occurred"),
 				);
