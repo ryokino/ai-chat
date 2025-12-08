@@ -1,6 +1,8 @@
 "use client";
 
 import { Bot, User } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +55,15 @@ export function Message({ sender, content, createdAt }: MessageProps) {
 							: "bg-muted text-foreground",
 					)}
 				>
-					<p className="whitespace-pre-wrap text-sm">{content}</p>
+					{isUser ? (
+						<p className="whitespace-pre-wrap text-sm">{content}</p>
+					) : (
+						<div className="prose prose-sm dark:prose-invert max-w-none">
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>
+								{content}
+							</ReactMarkdown>
+						</div>
+					)}
 				</div>
 				<span className="text-xs text-muted-foreground">
 					{formatTime(createdAt)}

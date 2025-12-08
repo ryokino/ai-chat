@@ -56,11 +56,11 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	}
 
 	return (
-		<Card className="flex h-full flex-col">
+		<Card className="flex h-full flex-col relative">
 			<CardHeader className="border-b">
 				<CardTitle>{title}</CardTitle>
 			</CardHeader>
-			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
+			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden pb-[120px]">
 				<MessageList
 					messages={messages}
 					className="flex-1"
@@ -78,12 +78,14 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 						</button>
 					</div>
 				)}
+			</CardContent>
+			<div className="absolute bottom-0 left-0 right-0 bg-background border-t">
 				<MessageInput
 					onSend={sendMessage}
 					disabled={isLoading || !sessionId}
 					placeholder={isLoading ? "送信中..." : "メッセージを入力してください"}
 				/>
-			</CardContent>
+			</div>
 		</Card>
 	);
 }

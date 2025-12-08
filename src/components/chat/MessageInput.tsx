@@ -3,7 +3,7 @@
 import { Send } from "lucide-react";
 import { type FormEvent, type KeyboardEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MessageInputProps {
 	onSend: (message: string) => void;
@@ -14,19 +14,20 @@ interface MessageInputProps {
 export function MessageInput({
 	onSend,
 	disabled = false,
-	placeholder = "メッセージを入力...",
+	placeholder = "メッセージを入力してください（Shift+Enterで改行）",
 }: MessageInputProps) {
 	const [message, setMessage] = useState("");
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
 		if (message.trim() && !disabled) {
-			onSend(message.trim());
+			onSend(message);
 			setMessage("");
 		}
 	};
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+		// Enterのみで送信、Shift+Enterで改行
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleSubmit(e);
@@ -34,21 +35,23 @@ export function MessageInput({
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4 border-t">
-			<Input
+		<form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4">
+			<Textarea
 				value={message}
 				onChange={(e) => setMessage(e.target.value)}
 				onKeyDown={handleKeyDown}
 				placeholder={placeholder}
 				disabled={disabled}
-				className="flex-1"
+				className="flex-1 min-h-[60px] max-h-[200px] resize-none"
 				aria-label="メッセージ入力"
+				rows={2}
 			/>
 			<Button
 				type="submit"
 				disabled={disabled || !message.trim()}
 				size="icon"
 				aria-label="送信"
+				className="self-end"
 			>
 				<Send className="h-4 w-4" />
 			</Button>
