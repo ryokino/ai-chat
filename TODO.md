@@ -326,9 +326,9 @@
 ## Phase 9: テスト実装（Vitest）
 
 ### 9.1 ユニットテスト（lib）
-- [ ] `src/lib/session.ts` のテスト
-  - [ ] セッションID生成のテスト
-  - [ ] セッション取得/保存のテスト
+- [x] `src/lib/session.ts` のテスト
+  - [x] セッションID生成のテスト
+  - [x] セッション取得/保存のテスト
 - [ ] `src/lib/claude.ts` のテスト（モック使用）
   - [ ] API呼び出しのモック
   - [ ] エラーハンドリングのテスト
@@ -336,19 +336,19 @@
   - [ ] シングルトンパターンの検証
 
 ### 9.2 コンポーネントテスト（React Testing Library）
-- [ ] `components/chat/Message.tsx` のテスト
-  - [ ] ユーザーメッセージの表示
-  - [ ] AIメッセージの表示
-  - [ ] タイムスタンプの表示
-- [ ] `components/chat/MessageInput.tsx` のテスト
-  - [ ] テキスト入力
-  - [ ] 送信ボタンクリック
-  - [ ] Enterキーでの送信
-  - [ ] 空メッセージの送信防止
-  - [ ] 送信中の無効化状態
-- [ ] `components/chat/MessageList.tsx` のテスト
-  - [ ] メッセージ一覧の表示
-  - [ ] 空状態の表示
+- [x] `components/chat/Message.tsx` のテスト
+  - [x] ユーザーメッセージの表示
+  - [x] AIメッセージの表示
+  - [x] タイムスタンプの表示
+- [x] `components/chat/MessageInput.tsx` のテスト
+  - [x] テキスト入力
+  - [x] 送信ボタンクリック
+  - [x] Enterキーでの送信
+  - [x] 空メッセージの送信防止
+  - [x] 送信中の無効化状態
+- [x] `components/chat/MessageList.tsx` のテスト
+  - [x] メッセージ一覧の表示
+  - [x] 空状態の表示
 - [ ] `components/chat/ChatWindow.tsx` のテスト
   - [ ] 統合テスト（MessageList + MessageInput）
   - [ ] ローディング状態の表示
@@ -364,9 +364,9 @@
   - [ ] エラーハンドリング
 
 ### 9.4 カスタムフックのテスト
-- [ ] `useChat` フックのテスト
-  - [ ] メッセージ送信
-  - [ ] 状態管理
+- [x] `useChat` フックのテスト
+  - [x] メッセージ送信
+  - [x] 状態管理
 - [ ] `useSession` フックのテスト
   - [ ] セッション初期化
   - [ ] セッション永続化
