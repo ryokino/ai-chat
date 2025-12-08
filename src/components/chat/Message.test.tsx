@@ -7,8 +7,12 @@ describe("Message component", () => {
 
 	it("should render user message correctly", () => {
 		render(
-			// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
-			<Message id="1" role="user" content="Hello, AI!" createdAt={mockDate} />,
+			<Message
+				id="1"
+				sender="user"
+				content="Hello, AI!"
+				createdAt={mockDate}
+			/>,
 		);
 
 		expect(screen.getByText("Hello, AI!")).toBeInTheDocument();
@@ -17,10 +21,9 @@ describe("Message component", () => {
 
 	it("should render assistant message correctly", () => {
 		render(
-			// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
 			<Message
 				id="2"
-				role="assistant"
+				sender="assistant"
 				content="Hello, human!"
 				createdAt={mockDate}
 			/>,
@@ -32,8 +35,7 @@ describe("Message component", () => {
 
 	it("should display timestamp in Japanese format", () => {
 		const date = new Date("2024-01-01T09:30:00");
-		// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
-		render(<Message id="3" role="user" content="Test" createdAt={date} />);
+		render(<Message id="3" sender="user" content="Test" createdAt={date} />);
 
 		expect(screen.getByText("09:30")).toBeInTheDocument();
 	});
@@ -41,10 +43,9 @@ describe("Message component", () => {
 	it("should render multi-line content with whitespace preserved", () => {
 		const multiLineContent = "Line 1\nLine 2\nLine 3";
 		render(
-			// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
 			<Message
 				id="4"
-				role="assistant"
+				sender="assistant"
 				content={multiLineContent}
 				createdAt={mockDate}
 			/>,
@@ -56,20 +57,18 @@ describe("Message component", () => {
 
 	it("should apply different styles for user and assistant messages", () => {
 		const { container: userContainer } = render(
-			// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
 			<Message
 				id="5"
-				role="user"
+				sender="user"
 				content="User message"
 				createdAt={mockDate}
 			/>,
 		);
 
 		const { container: assistantContainer } = render(
-			// biome-ignore lint/a11y/useValidAriaRole: role prop is for Message component, not ARIA
 			<Message
 				id="6"
-				role="assistant"
+				sender="assistant"
 				content="Assistant message"
 				createdAt={mockDate}
 			/>,

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export interface MessageProps {
 	id: string;
-	role: "user" | "assistant";
+	sender: "user" | "assistant";
 	content: string;
 	createdAt: Date;
 }
@@ -18,8 +18,8 @@ function formatTime(date: Date): string {
 	});
 }
 
-export function Message({ role, content, createdAt }: MessageProps) {
-	const isUser = role === "user";
+export function Message({ sender, content, createdAt }: MessageProps) {
+	const isUser = sender === "user";
 
 	return (
 		<div

@@ -46,7 +46,7 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 							createdAt: string;
 						}) => ({
 							id: msg.id,
-							role: msg.role as "user" | "assistant",
+							sender: msg.role as "user" | "assistant",
 							content: msg.content,
 							createdAt: new Date(msg.createdAt),
 						}),
@@ -74,7 +74,7 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 
 			const userMessage: MessageProps = {
 				id: nanoid(),
-				role: "user",
+				sender: "user",
 				content: content.trim(),
 				createdAt: new Date(),
 			};
@@ -93,7 +93,7 @@ export function useChat({ sessionId, onError }: UseChatOptions): UseChatReturn {
 					...prev,
 					{
 						id: assistantMessageId,
-						role: "assistant",
+						sender: "assistant",
 						content: "",
 						createdAt: new Date(),
 					},

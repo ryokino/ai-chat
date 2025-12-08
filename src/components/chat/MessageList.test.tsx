@@ -12,19 +12,19 @@ describe("MessageList component", () => {
 	const mockMessages: MessageProps[] = [
 		{
 			id: "1",
-			role: "user",
+			sender: "user",
 			content: "Hello",
 			createdAt: new Date("2024-01-01T12:00:00"),
 		},
 		{
 			id: "2",
-			role: "assistant",
+			sender: "assistant",
 			content: "Hi there!",
 			createdAt: new Date("2024-01-01T12:00:30"),
 		},
 		{
 			id: "3",
-			role: "user",
+			sender: "user",
 			content: "How are you?",
 			createdAt: new Date("2024-01-01T12:01:00"),
 		},
@@ -72,7 +72,7 @@ describe("MessageList component", () => {
 		const singleMessage: MessageProps[] = [
 			{
 				id: "1",
-				role: "user",
+				sender: "user",
 				content: "Single message",
 				createdAt: new Date(),
 			},

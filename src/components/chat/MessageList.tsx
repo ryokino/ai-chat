@@ -39,7 +39,7 @@ export function MessageList({
 					<Message
 						key={message.id}
 						id={message.id}
-						role={message.role}
+						sender={message.sender}
 						content={message.content}
 						createdAt={message.createdAt}
 					/>
