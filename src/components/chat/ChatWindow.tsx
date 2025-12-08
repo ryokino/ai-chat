@@ -1,10 +1,8 @@
 "use client";
 
-import { nanoid } from "nanoid";
-import { useCallback, useState } from "react";
 import { useSession } from "@/components/SessionProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { MessageProps } from "./Message";
+import { useChat } from "@/hooks/useChat";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 
@@ -14,99 +12,22 @@ interface ChatWindowProps {
 
 export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	const { sessionId, isLoading: isSessionLoading } = useSession();
-	const [messages, setMessages] = useState<MessageProps[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
-	const handleSendMessage = useCallback(
-		async (content: string) => {
-			if (!sessionId || isLoading) return;
-
-			const userMessage: MessageProps = {
-				id: nanoid(),
-				role: "user",
-				content,
-				createdAt: new Date(),
-			};
-
-			setMessages((prev) => [...prev, userMessage]);
-			setIsLoading(true);
-			setError(null);
-
-			try {
-				const response = await fetch("/api/chat", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						message: content,
-						sessionId,
-					}),
-				});
-
-				if (!response.ok) {
-					throw new Error("メッセージの送信に失敗しました");
-				}
-
-				const reader = response.body?.getReader();
-				if (!reader) {
-					throw new Error("レスポンスの読み取りに失敗しました");
-				}
-
-				const assistantMessageId = nanoid();
-				let assistantContent = "";
-
-				setMessages((prev) => [
-					...prev,
-					{
-						id: assistantMessageId,
-						role: "assistant",
-						content: "",
-						createdAt: new Date(),
-					},
-				]);
-
-				const decoder = new TextDecoder();
-				while (true) {
-					const { done, value } = await reader.read();
-					if (done) break;
-
-					const chunk = decoder.decode(value, { stream: true });
-					const lines = chunk.split("\n");
-
-					for (const line of lines) {
-						if (line.startsWith("data: ")) {
-							const data = line.slice(6);
-							if (data === "[DONE]") continue;
-
-							try {
-								const parsed = JSON.parse(data);
-								if (parsed.content) {
-									assistantContent += parsed.content;
-									setMessages((prev) =>
-										prev.map((msg) =>
-											msg.id === assistantMessageId
-												? { ...msg, content: assistantContent }
-												: msg,
-										),
-									);
-								}
-							} catch {
-								// JSON parse error - skip this line
-							}
-						}
-					}
-				}
-			} catch (err) {
-				setError(err instanceof Error ? err.message : "エラーが発生しました");
-			} finally {
-				setIsLoading(false);
-			}
+	const {
+		messages,
+		isLoading,
+		error,
+		sendMessage,
+		clearError,
+		isInitialLoading,
+	} = useChat({
+		sessionId: sessionId || "",
+		onError: (err) => {
+			console.error("Chat error:", err);
 		},
-		[sessionId, isLoading],
-	);
+	});
 
+	// セッション読み込み中
 	if (isSessionLoading) {
 		return (
 			<Card className="flex h-full flex-col">
@@ -114,7 +35,21 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 					<CardTitle>{title}</CardTitle>
 				</CardHeader>
 				<CardContent className="flex flex-1 items-center justify-center">
-					<p className="text-muted-foreground">読み込み中...</p>
+					<p className="text-muted-foreground">セッション初期化中...</p>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	// 会話履歴読み込み中
+	if (isInitialLoading) {
+		return (
+			<Card className="flex h-full flex-col">
+				<CardHeader>
+					<CardTitle>{title}</CardTitle>
+				</CardHeader>
+				<CardContent className="flex flex-1 items-center justify-center">
+					<p className="text-muted-foreground">会話履歴を読み込み中...</p>
 				</CardContent>
 			</Card>
 		);
@@ -128,11 +63,22 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
 				<MessageList messages={messages} className="flex-1" />
 				{error && (
-					<div className="px-4 py-2 text-sm text-destructive bg-destructive/10">
-						{error}
+					<div className="px-4 py-2 text-sm text-destructive bg-destructive/10 flex items-center justify-between">
+						<span>{error}</span>
+						<button
+							type="button"
+							onClick={clearError}
+							className="ml-2 underline hover:no-underline"
+						>
+							閉じる
+						</button>
 					</div>
 				)}
-				<MessageInput onSend={handleSendMessage} disabled={isLoading} />
+				<MessageInput
+					onSend={sendMessage}
+					disabled={isLoading || !sessionId}
+					placeholder={isLoading ? "送信中..." : "メッセージを入力してください"}
+				/>
 			</CardContent>
 		</Card>
 	);
