@@ -272,7 +272,30 @@ SESSION_SECRET=your_random_secret_key
 4. テストを実施（該当する場合）
 5. 実装が完了したら、TodoWriteツールでタスクを `completed` に設定
 6. TODO.mdの該当チェックボックスを `[x]` に更新
-7. Gitコミット
+7. **必ずGitコミットを行う**（重要！）
+
+### Git コミットルール
+- **実装完了後は必ずコミット**: 各Phase、各機能の実装が完了したら、必ずGitにコミットすること
+- **コミットのタイミング**:
+  - 1つのPhaseが完了したとき
+  - 1つの機能が完了したとき
+  - 複数のファイルにまたがる大きな変更が完了したとき
+- **コミットメッセージの形式**:
+  ```
+  feat/fix/refactor: 簡潔なタイトル
+
+  - 変更内容の詳細1
+  - 変更内容の詳細2
+  - 変更内容の詳細3
+
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+  Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+  ```
+- **コミット前の確認**:
+  - TODO.mdのチェックボックスを更新済みか
+  - `pnpm lint` でエラーがないか
+  - 必要に応じて `pnpm test` でテストが通るか
 
 ### 品質チェック
 - テストコード作成時は、グローバルCLAUDE.mdの「テストコード作成時の厳守事項」を必ず遵守
