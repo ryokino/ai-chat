@@ -245,25 +245,25 @@
 ## Phase 6: API実装
 
 ### 6.1 チャットAPIの実装（SSE）
-- [ ] `app/api/chat/route.ts` を作成
-  - [ ] POSTメソッドの実装
-  - [ ] リクエストボディからメッセージとセッションIDを取得
-  - [ ] セッション検証/作成
-  - [ ] Claudeストリーミングレスポンスの取得
-  - [ ] SSE形式でのレスポンス返却
-  - [ ] メッセージのDB保存（ユーザー/アシスタント両方）
-  - [ ] エラーハンドリング
+- [x] `app/api/chat/route.ts` を作成
+  - [x] POSTメソッドの実装
+  - [x] リクエストボディからメッセージとセッションIDを取得
+  - [x] セッション検証/作成
+  - [x] Claudeストリーミングレスポンスの取得
+  - [x] SSE形式でのレスポンス返却
+  - [x] メッセージのDB保存（ユーザー/アシスタント両方）
+  - [x] エラーハンドリング
 
 ### 6.2 会話履歴取得APIの実装
-- [ ] `app/api/conversations/route.ts` を作成
-  - [ ] GETメソッドの実装
-  - [ ] セッションIDからConversationを取得
-  - [ ] 関連するMessageを含めて返却
+- [x] `app/api/conversations/route.ts` を作成
+  - [x] GETメソッドの実装
+  - [x] セッションIDからConversationを取得
+  - [x] 関連するMessageを含めて返却
   - [ ] ページネーション対応（任意）
 
 ### 6.3 会話作成APIの実装（任意）
-- [ ] `app/api/conversations/route.ts` にPOSTメソッド追加
-  - [ ] 新しい会話セッションの作成
+- [x] `app/api/conversations/route.ts` にPOSTメソッド追加
+  - [x] 新しい会話セッションの作成
 
 ---
 
