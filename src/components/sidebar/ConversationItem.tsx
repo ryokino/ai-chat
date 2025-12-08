@@ -97,57 +97,50 @@ export function ConversationItem({
 
 	return (
 		<>
-			<SidebarMenuItem>
+			<SidebarMenuItem className="group/item relative">
 				<SidebarMenuButton
 					isActive={isActive}
 					onClick={onSelect}
-					className="group/item w-full justify-between"
+					className="w-full justify-between pr-8"
 				>
 					<div className="flex items-center gap-2 min-w-0 flex-1">
 						<MessageSquare className="h-4 w-4 shrink-0" />
 						<span className="truncate">{displayTitle}</span>
 					</div>
-					<div className="flex items-center gap-1">
-						<span className="text-xs text-muted-foreground shrink-0 group-hover/item:hidden">
-							{formatRelativeTime(conversation.updatedAt)}
-						</span>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									className="h-6 w-6 shrink-0 opacity-0 group-hover/item:opacity-100"
-									onClick={(e) => e.stopPropagation()}
-								>
-									<MoreHorizontal className="h-4 w-4" />
-									<span className="sr-only">メニューを開く</span>
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-40">
-								<DropdownMenuItem
-									onClick={(e) => {
-										e.stopPropagation();
-										setEditTitle(conversation.title || "");
-										setShowEditDialog(true);
-									}}
-								>
-									<Pencil className="mr-2 h-4 w-4" />
-									タイトルを編集
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									onClick={(e) => {
-										e.stopPropagation();
-										setShowDeleteDialog(true);
-									}}
-									className="text-destructive focus:text-destructive"
-								>
-									<Trash2 className="mr-2 h-4 w-4" />
-									削除
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</div>
+					<span className="text-xs text-muted-foreground shrink-0 group-hover/item:hidden">
+						{formatRelativeTime(conversation.updatedAt)}
+					</span>
 				</SidebarMenuButton>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 shrink-0 opacity-0 group-hover/item:opacity-100"
+						>
+							<MoreHorizontal className="h-4 w-4" />
+							<span className="sr-only">メニューを開く</span>
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="w-40">
+						<DropdownMenuItem
+							onClick={() => {
+								setEditTitle(conversation.title || "");
+								setShowEditDialog(true);
+							}}
+						>
+							<Pencil className="mr-2 h-4 w-4" />
+							タイトルを編集
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => setShowDeleteDialog(true)}
+							className="text-destructive focus:text-destructive"
+						>
+							<Trash2 className="mr-2 h-4 w-4" />
+							削除
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</SidebarMenuItem>
 
 			{/* 削除確認ダイアログ */}
