@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
 
 // Load environment variables from .env.local with override
 dotenv.config({ path: ".env.local", override: true });

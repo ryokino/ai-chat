@@ -1,7 +1,13 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { type FormEvent, type KeyboardEvent, useState } from "react";
+import {
+	type FormEvent,
+	type KeyboardEvent,
+	memo,
+	useCallback,
+	useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -11,33 +17,40 @@ interface MessageInputProps {
 	placeholder?: string;
 }
 
-export function MessageInput({
+export const MessageInput = memo(function MessageInput({
 	onSend,
 	disabled = false,
 	placeholder = "メッセージを入力してください（⌘+Enterで送信）",
 }: MessageInputProps) {
 	const [message, setMessage] = useState("");
 
-	const handleSubmit = (e: FormEvent) => {
-		e.preventDefault();
-		if (message.trim() && !disabled) {
-			onSend(message);
-			setMessage("");
-		}
-	};
-
-	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-		// IME変換中のEnterは無視
-		if (e.isComposing) {
-			return;
-		}
-
-		// Command+Enter (Mac) または Ctrl+Enter (Windows/Linux) で送信
-		if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+	const handleSubmit = useCallback(
+		(e: FormEvent) => {
 			e.preventDefault();
-			handleSubmit(e);
-		}
-	};
+			const trimmedMessage = message.trim();
+			if (trimmedMessage && !disabled) {
+				onSend(trimmedMessage);
+				setMessage("");
+			}
+		},
+		[message, disabled, onSend],
+	);
+
+	const handleKeyDown = useCallback(
+		(e: KeyboardEvent<HTMLTextAreaElement>) => {
+			// IME変換中のEnterは無視
+			if (e.nativeEvent.isComposing) {
+				return;
+			}
+
+			// Command+Enter (Mac) または Ctrl+Enter (Windows/Linux) で送信
+			if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				handleSubmit(e);
+			}
+		},
+		[handleSubmit],
+	);
 
 	return (
 		<form onSubmit={handleSubmit} className="flex gap-2 p-3 sm:p-4">
@@ -62,4 +75,4 @@ export function MessageInput({
 			</Button>
 		</form>
 	);
-}
+});

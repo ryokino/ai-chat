@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, type MessageProps } from "./Message";
 
@@ -10,7 +10,7 @@ interface MessageListProps {
 	isLoading?: boolean;
 }
 
-export function MessageList({
+export const MessageList = memo(function MessageList({
 	messages,
 	className,
 	isLoading = false,
@@ -75,4 +75,4 @@ export function MessageList({
 			</div>
 		</ScrollArea>
 	);
-}
+});

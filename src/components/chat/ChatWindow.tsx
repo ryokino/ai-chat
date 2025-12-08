@@ -84,7 +84,9 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 					<MessageInput
 						onSend={sendMessage}
 						disabled={isLoading || !sessionId}
-						placeholder={isLoading ? "送信中..." : "メッセージを入力してください"}
+						placeholder={
+							isLoading ? "送信中..." : "メッセージを入力してください"
+						}
 					/>
 				</div>
 			</CardContent>

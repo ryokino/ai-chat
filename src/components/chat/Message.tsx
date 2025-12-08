@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot, User } from "lucide-react";
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,7 +21,11 @@ function formatTime(date: Date): string {
 	});
 }
 
-export function Message({ sender, content, createdAt }: MessageProps) {
+export const Message = memo(function Message({
+	sender,
+	content,
+	createdAt,
+}: MessageProps) {
 	const isUser = sender === "user";
 
 	return (
@@ -71,4 +76,4 @@ export function Message({ sender, content, createdAt }: MessageProps) {
 			</div>
 		</div>
 	);
-}
+});

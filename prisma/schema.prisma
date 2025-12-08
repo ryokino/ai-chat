@@ -16,6 +16,9 @@ model Conversation {
   messages  Message[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  // sessionIdで会話を検索するためのインデックス
+  @@index([sessionId])
 }
 
 model Message {
@@ -25,4 +28,7 @@ model Message {
   role           String       // "user" or "assistant"
   content        String
   createdAt      DateTime     @default(now())
+
+  // conversationIdでメッセージを検索・createdAtでソートするためのインデックス
+  @@index([conversationId, createdAt])
 }

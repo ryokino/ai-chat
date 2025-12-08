@@ -1,6 +1,11 @@
 import type { NextRequest } from "next/server";
 import { chatAgent } from "@/lib/mastra";
 import { prisma } from "@/lib/prisma";
+import {
+	chatRateLimitConfig,
+	checkRateLimit,
+	getRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +28,21 @@ export async function POST(request: NextRequest) {
 					headers: { "Content-Type": "application/json" },
 				},
 			);
+		}
+
+		// Rate Limitチェック（sessionIdで識別）
+		const rateLimitResult = checkRateLimit(
+			`chat:${sessionId}`,
+			chatRateLimitConfig,
+		);
+		if (!rateLimitResult.success) {
+			return new Response(JSON.stringify({ error: rateLimitResult.message }), {
+				status: 429,
+				headers: {
+					"Content-Type": "application/json",
+					...getRateLimitHeaders(rateLimitResult),
+				},
+			});
 		}
 
 		// Get or create conversation
@@ -57,7 +77,10 @@ export async function POST(request: NextRequest) {
 		conversationHistory.push({ role: "user", content: message });
 
 		// Stream response from Mastra agent
-		const stream = await chatAgent.stream(conversationHistory);
+		// Note: Using type assertion as Mastra's stream method accepts message arrays
+		const stream = await chatAgent.stream(
+			conversationHistory as Parameters<typeof chatAgent.stream>[0],
+		);
 
 		// Create a ReadableStream to send SSE
 		const encoder = new TextEncoder();

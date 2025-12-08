@@ -40,12 +40,12 @@ describe("Message component", () => {
 		expect(screen.getByText("09:30")).toBeInTheDocument();
 	});
 
-	it("should render multi-line content with whitespace preserved", () => {
+	it("should render user multi-line content with whitespace preserved", () => {
 		const multiLineContent = "Line 1\nLine 2\nLine 3";
 		render(
 			<Message
 				id="4"
-				sender="assistant"
+				sender="user"
 				content={multiLineContent}
 				createdAt={mockDate}
 			/>,
@@ -55,10 +55,26 @@ describe("Message component", () => {
 		expect(contentElement).toHaveClass("whitespace-pre-wrap");
 	});
 
+	it("should render assistant message with Markdown support", () => {
+		render(
+			<Message
+				id="5"
+				sender="assistant"
+				content="**Bold text** and *italic text*"
+				createdAt={mockDate}
+			/>,
+		);
+
+		// Markdownがレンダリングされていることを確認
+		expect(screen.getByText("Bold text")).toBeInTheDocument();
+		expect(screen.getByText("and")).toBeInTheDocument();
+		expect(screen.getByText("italic text")).toBeInTheDocument();
+	});
+
 	it("should apply different styles for user and assistant messages", () => {
 		const { container: userContainer } = render(
 			<Message
-				id="5"
+				id="6"
 				sender="user"
 				content="User message"
 				createdAt={mockDate}
@@ -67,7 +83,7 @@ describe("Message component", () => {
 
 		const { container: assistantContainer } = render(
 			<Message
-				id="6"
+				id="7"
 				sender="assistant"
 				content="Assistant message"
 				createdAt={mockDate}

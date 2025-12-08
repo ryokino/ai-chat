@@ -1,14 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { MessageInput } from "./MessageInput";
+
+const DEFAULT_PLACEHOLDER = "メッセージを入力してください（⌘+Enterで送信）";
 
 describe("MessageInput component", () => {
 	it("should render input field and send button", () => {
 		render(<MessageInput onSend={vi.fn()} />);
 
 		expect(
-			screen.getByPlaceholderText("メッセージを入力..."),
+			screen.getByPlaceholderText(DEFAULT_PLACEHOLDER),
 		).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "送信" })).toBeInTheDocument();
 	});
@@ -17,7 +19,7 @@ describe("MessageInput component", () => {
 		const user = userEvent.setup();
 		render(<MessageInput onSend={vi.fn()} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 		await user.type(input, "Hello");
 
 		expect(input).toHaveValue("Hello");
@@ -28,7 +30,7 @@ describe("MessageInput component", () => {
 		const handleSend = vi.fn();
 		render(<MessageInput onSend={handleSend} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 		const sendButton = screen.getByRole("button", { name: "送信" });
 
 		await user.type(input, "Test message");
@@ -38,18 +40,46 @@ describe("MessageInput component", () => {
 		expect(input).toHaveValue("");
 	});
 
-	it("should call onSend when Enter key is pressed", async () => {
+	it("should call onSend when Command+Enter is pressed", async () => {
 		const user = userEvent.setup();
 		const handleSend = vi.fn();
 		render(<MessageInput onSend={handleSend} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 
 		await user.type(input, "Test message");
-		await user.keyboard("{Enter}");
+		// Command+Enterで送信
+		fireEvent.keyDown(input, { key: "Enter", metaKey: true });
 
 		expect(handleSend).toHaveBeenCalledWith("Test message");
-		expect(input).toHaveValue("");
+	});
+
+	it("should call onSend when Ctrl+Enter is pressed", async () => {
+		const user = userEvent.setup();
+		const handleSend = vi.fn();
+		render(<MessageInput onSend={handleSend} />);
+
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
+
+		await user.type(input, "Test message");
+		// Ctrl+Enterで送信
+		fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
+
+		expect(handleSend).toHaveBeenCalledWith("Test message");
+	});
+
+	it("should NOT send message when only Enter is pressed", async () => {
+		const user = userEvent.setup();
+		const handleSend = vi.fn();
+		render(<MessageInput onSend={handleSend} />);
+
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
+
+		await user.type(input, "Test message");
+		// 通常のEnterでは送信しない
+		fireEvent.keyDown(input, { key: "Enter" });
+
+		expect(handleSend).not.toHaveBeenCalled();
 	});
 
 	it("should not send empty or whitespace-only messages", async () => {
@@ -57,7 +87,7 @@ describe("MessageInput component", () => {
 		const handleSend = vi.fn();
 		render(<MessageInput onSend={handleSend} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 		const sendButton = screen.getByRole("button", { name: "送信" });
 
 		// 空メッセージ
@@ -75,10 +105,11 @@ describe("MessageInput component", () => {
 		const handleSend = vi.fn();
 		render(<MessageInput onSend={handleSend} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 
 		await user.type(input, "  Test message  ");
-		await user.keyboard("{Enter}");
+		// Command+Enterで送信
+		fireEvent.keyDown(input, { key: "Enter", metaKey: true });
 
 		expect(handleSend).toHaveBeenCalledWith("Test message");
 	});
@@ -86,7 +117,7 @@ describe("MessageInput component", () => {
 	it("should disable input and button when disabled prop is true", () => {
 		render(<MessageInput onSend={vi.fn()} disabled={true} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 		const sendButton = screen.getByRole("button", { name: "送信" });
 
 		expect(input).toBeDisabled();
@@ -98,10 +129,10 @@ describe("MessageInput component", () => {
 		const handleSend = vi.fn();
 		render(<MessageInput onSend={handleSend} disabled={true} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 
 		await user.type(input, "Test message");
-		await user.keyboard("{Enter}");
+		fireEvent.keyDown(input, { key: "Enter", metaKey: true });
 
 		expect(handleSend).not.toHaveBeenCalled();
 	});
@@ -123,7 +154,7 @@ describe("MessageInput component", () => {
 		const user = userEvent.setup();
 		render(<MessageInput onSend={vi.fn()} />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力...");
+		const input = screen.getByPlaceholderText(DEFAULT_PLACEHOLDER);
 		const sendButton = screen.getByRole("button", { name: "送信" });
 
 		expect(sendButton).toBeDisabled();

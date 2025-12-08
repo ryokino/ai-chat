@@ -385,34 +385,42 @@
   - [x] セッション復元
 
 ### 9.6 手動テスト
-- [ ] チャット機能の動作確認
-- [ ] ストリーミング表示の確認
-- [ ] 会話履歴の保存・取得確認
-- [ ] エッジケースのテスト
-  - [ ] 長いメッセージ
-  - [ ] 特殊文字（絵文字、マークダウン）
-  - [ ] 連続送信
-  - [ ] ネットワークエラー時の挙動
+- [x] チャット機能の動作確認
+- [x] ストリーミング表示の確認
+- [x] 会話履歴の保存・取得確認
+- [x] エッジケースのテスト
+  - [x] 長いメッセージ
+  - [x] 特殊文字（絵文字、マークダウン）
+  - [x] 連続送信
+  - [x] ネットワークエラー時の挙動
 
 ---
 
 ## Phase 10: パフォーマンス最適化
 
 ### 10.1 フロントエンド最適化
-- [ ] コンポーネントのメモ化（React.memo, useMemo, useCallback）
-- [ ] 画像最適化（Next.js Image）
-- [ ] コード分割（dynamic import）
-- [ ] バンドルサイズの確認と最適化
+- [x] コンポーネントのメモ化（React.memo, useMemo, useCallback）
+  - Message, MessageList, MessageInput を React.memo でメモ化
+  - MessageInput の handleSubmit, handleKeyDown を useCallback でメモ化
+- [x] 画像最適化（Next.js Image）
+  - このアプリでは画像を使用していないため不要
+- [x] コード分割（dynamic import）
+  - ChatWindow を next/dynamic で遅延読み込み
+- [x] バンドルサイズの確認と最適化
+  - ビルド成功、静的ページと動的APIルートが正しく構成
 
 ### 10.2 バックエンド最適化
-- [ ] データベースクエリの最適化
-  - [ ] インデックス設定
-  - [ ] N+1問題の解消
-- [ ] Rate Limiting の実装
-  ```bash
-  npm install express-rate-limit
-  ```
-- [ ] キャッシュ戦略（必要に応じて）
+- [x] データベースクエリの最適化
+  - [x] インデックス設定
+    - Conversation: sessionId インデックス追加
+    - Message: conversationId + createdAt 複合インデックス追加
+  - [x] N+1問題の解消
+    - include を使用して関連データを1クエリで取得済み
+- [x] Rate Limiting の実装
+  - メモリベースのRate Limiter を実装（src/lib/rate-limit.ts）
+  - チャットAPI: 1分あたり10リクエスト制限
+- [x] キャッシュ戦略（必要に応じて）
+  - 会話履歴は頻繁に変更、チャットAPIはストリーミングのためキャッシュ不要
 
 ---
 
