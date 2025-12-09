@@ -170,6 +170,7 @@ describe("sendChatMessage", () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({
 				message: "Hello",
 				sessionId: "session-123",
@@ -208,6 +209,7 @@ describe("sendChatMessage", () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({
 				message: "Hello",
 				sessionId: "session-123",
@@ -240,6 +242,7 @@ describe("fetchConversations", () => {
 				headers: {
 					"Content-Type": "application/json",
 				},
+				credentials: "include",
 			},
 		);
 	});
@@ -262,6 +265,7 @@ describe("fetchConversations", () => {
 				headers: {
 					"Content-Type": "application/json",
 				},
+				credentials: "include",
 			},
 		);
 	});
@@ -302,6 +306,7 @@ describe("deleteMessage", () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({
 				sessionId: "session-123",
 				deleteAfter: true,
@@ -325,6 +330,7 @@ describe("deleteMessage", () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({
 				userId: "user-456",
 				deleteAfter: false,

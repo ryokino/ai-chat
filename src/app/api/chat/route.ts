@@ -86,6 +86,19 @@ export async function POST(request: NextRequest) {
 		// サーバーサイドで認証検証
 		const authenticatedUserId = await getAuthenticatedUserId(request);
 
+		// 認証必須: ログインしていない場合は拒否
+		if (!authenticatedUserId) {
+			return new Response(
+				JSON.stringify({
+					error: "Unauthorized: Login required to send messages",
+				}),
+				{
+					status: 401,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		}
+
 		// userIdが指定されている場合、認証セッションと一致するか確認
 		if (userId && userId !== authenticatedUserId) {
 			return new Response(

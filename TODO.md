@@ -992,6 +992,40 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 
 ---
 
+## Phase 24: 認証ユーザーのチャット機能修正
+
+### 24.1 問題
+- Googleでログインしているにもかかわらずチャットでメッセージを送信できない
+- Better Authセッションクッキーがサーバーに送信されていない
+
+### 24.2 原因
+- `sse-client.ts`の全fetch呼び出しに`credentials: "include"`が設定されていない
+- クッキーが送信されないためサーバーで認証ユーザーを識別できない
+
+### 24.3 修正内容
+- [x] `src/lib/sse-client.ts` - 全8箇所のfetch呼び出しに`credentials: "include"`を追加
+  - sendChatMessage (行176)
+  - fetchConversations (行210)
+  - fetchConversation (行245)
+  - createConversation (行271)
+  - deleteConversation (行299)
+  - updateConversationTitle (行327)
+  - generateConversationTitle (行356)
+  - deleteMessage (行387)
+- [x] `src/lib/sse-client.test.ts` - テストを更新（全12テスト通過）
+
+### 24.4 テスト
+- [x] `pnpm test` でテストが通ることを確認（209/213テスト通過、4件はSessionProvider既存issue）
+- [ ] 開発サーバーでGoogleログイン → チャット送信を確認
+
+### 24.5 匿名ユーザーデータ削除
+- [ ] ユーザーIDに紐づいていない会話データをMongoDBから削除（オプション）
+  ```javascript
+  db.Conversation.deleteMany({ userId: null })
+  ```
+
+---
+
 ## チェックリスト完了後
 
 - [ ] 全機能の最終動作確認

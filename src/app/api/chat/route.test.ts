@@ -27,8 +27,12 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 describe("/api/chat POST", () => {
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks();
+
+		// デフォルトで認証済みユーザーを返すようにモック
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("test-user-id");
 	});
 
 	it("should return 400 when message is missing", async () => {
@@ -514,42 +518,11 @@ describe("/api/chat POST", () => {
 		);
 	});
 
-	it("should allow unauthenticated users with sessionId", async () => {
-		const { prisma } = await import("@/lib/prisma");
-		const { chatAgent } = await import("@/lib/mastra");
+	it("should return 401 when user is not authenticated", async () => {
 		const { getAuthenticatedUserId } = await import("@/lib/auth");
 
 		// Mock authentication to return null (unauthenticated)
 		vi.mocked(getAuthenticatedUserId).mockResolvedValue(null);
-
-		const mockConversation = {
-			id: "conv-session-1",
-			sessionId: "session-123",
-			userId: null,
-			title: null,
-			messages: [],
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-
-		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(
-			mockConversation,
-		);
-		vi.mocked(prisma.message.create).mockResolvedValue({
-			id: "msg-1",
-			conversationId: "conv-session-1",
-			role: "user",
-			content: "Hello",
-			createdAt: new Date(),
-		});
-
-		const mockFullStream = (async function* () {
-			yield { type: "text-delta", payload: { id: "1", text: "Response" } };
-		})();
-
-		vi.mocked(chatAgent.stream).mockResolvedValue({
-			fullStream: mockFullStream,
-		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {
 			method: "POST",
@@ -557,16 +530,13 @@ describe("/api/chat POST", () => {
 			body: JSON.stringify({
 				message: "Hello",
 				sessionId: "session-123",
-				conversationId: "conv-session-1",
 			}),
 		});
 
 		const response = await POST(request as any);
+		const data = await response.json();
 
-		expect(response.status).toBe(200);
-		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
-			where: { id: "conv-session-1", sessionId: "session-123" },
-			include: { messages: true },
-		});
+		expect(response.status).toBe(401);
+		expect(data.error).toBe("Unauthorized: Login required to send messages");
 	});
 });

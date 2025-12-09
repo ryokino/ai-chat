@@ -178,6 +178,7 @@ export async function sendChatMessage(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			message,
 			sessionId,
@@ -212,6 +213,7 @@ export async function fetchConversations(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 	});
 
 	if (!response.ok) {
@@ -249,6 +251,7 @@ export async function fetchConversation(
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 		},
 	);
 
@@ -273,6 +276,7 @@ export async function createConversation(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			...(userId ? { userId } : { sessionId }),
 		}),
@@ -301,6 +305,7 @@ export async function deleteConversation(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			...(userId ? { userId } : { sessionId }),
 		}),
@@ -329,6 +334,7 @@ export async function updateConversationTitle(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			...(userId ? { userId } : { sessionId }),
 			title,
@@ -358,6 +364,7 @@ export async function generateConversationTitle(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			conversationId,
 			...(userId ? { userId } : { sessionId }),
@@ -389,6 +396,7 @@ export async function deleteMessage(
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 		body: JSON.stringify({
 			...(userId ? { userId } : { sessionId }),
 			deleteAfter,

@@ -47,8 +47,10 @@ describe("ChatWindow component", () => {
 	it("should display session loading state", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: null,
+			userId: null,
+			user: null,
 			isLoading: true,
-			clearSession: vi.fn(),
+			isAuthenticated: false,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -69,8 +71,10 @@ describe("ChatWindow component", () => {
 	it("should display conversation history loading state", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -94,8 +98,10 @@ describe("ChatWindow component", () => {
 
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -129,8 +135,10 @@ describe("ChatWindow component", () => {
 
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -155,8 +163,10 @@ describe("ChatWindow component", () => {
 	it("should disable input while loading", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -175,11 +185,13 @@ describe("ChatWindow component", () => {
 		expect(input).toBeDisabled();
 	});
 
-	it("should disable input when no sessionId", () => {
+	it("should disable input and show login message when not authenticated", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
-			sessionId: null,
+			sessionId: "test-session",
+			userId: null,
+			user: null,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: false,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -190,19 +202,25 @@ describe("ChatWindow component", () => {
 			clearError: vi.fn(),
 			isInitialLoading: false,
 			clearMessages: vi.fn(),
+			editMessage: vi.fn(),
+			regenerateMessage: vi.fn(),
 		});
 
 		render(<ChatWindow />);
 
-		const input = screen.getByPlaceholderText("メッセージを入力してください");
+		const input = screen.getByPlaceholderText(
+			"チャットするにはログインしてください",
+		);
 		expect(input).toBeDisabled();
 	});
 
 	it("should render custom title", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({
@@ -223,8 +241,10 @@ describe("ChatWindow component", () => {
 	it("should show loading indicator in MessageList when sending", () => {
 		vi.mocked(SessionProvider.useSession).mockReturnValue({
 			sessionId: "test-session",
+			userId: "test-user-id",
+			user: { id: "test-user-id" } as any,
 			isLoading: false,
-			clearSession: vi.fn(),
+			isAuthenticated: true,
 		});
 
 		vi.mocked(useChat.useChat).mockReturnValue({

@@ -14,7 +14,12 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
-	const { sessionId, userId, isLoading: isSessionLoading } = useSession();
+	const {
+		sessionId,
+		userId,
+		isLoading: isSessionLoading,
+		isAuthenticated,
+	} = useSession();
 	const {
 		activeConversationId,
 		setActiveConversationId,
@@ -108,9 +113,13 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 				<div className="absolute bottom-0 left-0 right-0 bg-background border-t">
 					<MessageInput
 						onSend={sendMessage}
-						disabled={isLoading || !sessionId}
+						disabled={isLoading || !isAuthenticated}
 						placeholder={
-							isLoading ? "送信中..." : "メッセージを入力してください"
+							!isAuthenticated
+								? "チャットするにはログインしてください"
+								: isLoading
+									? "送信中..."
+									: "メッセージを入力してください"
 						}
 					/>
 				</div>
