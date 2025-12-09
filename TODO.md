@@ -855,26 +855,26 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 ## Phase 21: セキュリティ強化とコード品質改善
 
 ### 21.1 デバッグログ削除
-- [ ] `src/hooks/useChat.ts:213` の `console.log("Message streaming completed")` を削除
+- [x] `src/hooks/useChat.ts:213` の `console.log("Message streaming completed")` を削除
 
 ### 21.2 サーバーサイド認証検証
-- [ ] `src/lib/auth.ts` に `getAuthenticatedUserId()` ヘルパー関数を追加
-- [ ] `src/app/api/chat/route.ts` に認証検証を追加
-- [ ] `src/app/api/conversations/route.ts` に認証検証を追加
-- [ ] `src/app/api/conversations/[id]/route.ts` に認証検証を追加
-- [ ] `src/app/api/messages/[id]/route.ts` に認証検証を追加
-- [ ] `src/app/api/conversations/generate-title/route.ts` に認証検証を追加
+- [x] `src/lib/auth.ts` に `getAuthenticatedUserId()` ヘルパー関数を追加
+- [x] `src/app/api/chat/route.ts` に認証検証を追加
+- [x] `src/app/api/conversations/route.ts` に認証検証を追加
+- [x] `src/app/api/conversations/[id]/route.ts` に認証検証を追加
+- [x] `src/app/api/messages/[id]/route.ts` に認証検証を追加
+- [x] `src/app/api/conversations/generate-title/route.ts` に認証検証を追加
 
 ### 21.3 Error Boundary
-- [ ] `src/components/ErrorBoundary.tsx` を作成
-- [ ] `src/app/layout.tsx` に ErrorBoundary を統合
-- [ ] `src/components/__tests__/ErrorBoundary.test.tsx` を作成
+- [x] `src/components/ErrorBoundary.tsx` を作成
+- [x] `src/app/layout.tsx` に ErrorBoundary を統合
+- [x] `src/components/__tests__/ErrorBoundary.test.tsx` を作成
 
 ### 21.4 テスト
-- [ ] `src/lib/__tests__/auth.test.ts` を作成
+- [x] `src/lib/__tests__/auth.test.ts` を作成
   - `getAuthenticatedUserId()` のテスト
   - `getBaseURL()` のテスト
-- [ ] 各APIルートテストの更新（認証検証のテストケース追加）
+- [x] 各APIルートテストの更新（認証検証のテストケース追加）
   - `src/app/api/chat/route.test.ts` - userId不一致時の403テスト
   - `src/app/api/conversations/route.test.ts` - userId不一致時の403テスト
   - `src/app/api/messages/[id]/route.test.ts` - userId不一致時の403テスト
