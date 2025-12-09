@@ -469,32 +469,32 @@
   # docker-compose.raspi.yml を docker-compose.yml にリネームしてコピー
   # .env ファイルに DATABASE_URL と ANTHROPIC_API_KEY を設定
   ```
-- [ ] Cloudflare Tunnel で localhost:3000 を公開
+- [x] Cloudflare Tunnel で localhost:3000 を公開
   ```bash
   # cloudflared config.yml に追加:
-  # - hostname: your-domain.com
+  # - hostname: chat.ryokino.com
   #   service: http://localhost:3000
   ```
 
 ### 12.2 初回デプロイ
-- [ ] コンテナを起動
+- [x] コンテナを起動
   ```bash
   docker compose up -d
   ```
-- [ ] Watchtower のログ確認
+- [x] Watchtower のログ確認
   ```bash
   docker logs watchtower
   ```
 
 ### 12.3 本番環境での動作確認
-- [ ] Cloudflare Tunnel 経由でアクセス
-- [ ] チャット機能の動作確認
-- [ ] ストリーミングの動作確認
-- [ ] 会話履歴の保存確認
+- [x] Cloudflare Tunnel 経由でアクセス
+- [x] チャット機能の動作確認
+- [x] ストリーミングの動作確認
+- [x] 会話履歴の保存確認
 - [ ] 自動更新のテスト（main に push して5分後に反映されるか）
 
 ### 12.4 監視設定
-- [ ] docker logs でアプリログ確認
+- [x] docker logs でアプリログ確認
 - [ ] Cloudflare Analytics でアクセス状況確認
 
 ---
