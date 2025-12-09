@@ -40,7 +40,7 @@
 ANTHROPIC_API_KEY=your_api_key_here
 
 # MongoDB Atlas
-DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/ai-chat?retryWrites=true&w=majority"
+DATABASE_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/ai-chat?retryWrites=true&w=majority"
 
 # アプリケーション
 NEXT_PUBLIC_APP_URL=http://localhost:3000
