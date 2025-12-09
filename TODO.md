@@ -965,15 +965,29 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 - `src/lib/auth-client.ts` でデフォルト値 `http://localhost:3000` が埋め込まれた
 - Docker イメージビルド時に環境変数が渡されていなかった
 
-### 23.3 修正内容
+### 23.3 修正内容（第1回）
 - [x] Dockerfile を修正 - `ARG NEXT_PUBLIC_APP_URL` を追加し、ENV として設定
 - [x] GitHub Actions を修正 - build-args に `NEXT_PUBLIC_APP_URL=https://chat.ryokino.com` を追加
 - [x] docker-compose.raspi.yml を修正 - ランタイム環境変数から削除（コメント追加）
 
-### 23.4 デプロイ
+### 23.4 追加の問題発見
+- `/api/auth/get-session` が 500 エラーを返す
+- サーバーサイドの `getBaseURL()` で `NEXT_PUBLIC_APP_URL` が利用できない
+  - `NEXT_PUBLIC_` 環境変数はビルド時にクライアントコードに埋め込まれるだけ
+  - サーバーサイドのランタイムでは利用不可
+
+### 23.5 修正内容（第2回）
+- [x] docker-compose.raspi.yml に `BETTER_AUTH_URL=https://chat.ryokino.com` を追加
+  - サーバーサイドの Better Auth が正しい baseURL を使用できるようにする
+
+### 23.6 デプロイ
 - [ ] コミット & プッシュ
-- [ ] GitHub Actions でビルド完了を確認
-- [ ] Raspberry Pi で Watchtower による自動更新を確認（約5分）
+- [ ] Raspberry Pi で手動コンテナ再起動（環境変数変更のため）
+  ```bash
+  cd /path/to/ai-chat
+  docker compose down
+  docker compose up -d
+  ```
 - [ ] 本番環境でログイン機能をテスト
 
 ---

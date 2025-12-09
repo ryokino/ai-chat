@@ -22,7 +22,9 @@ services:
       - TAVILY_API_KEY=${TAVILY_API_KEY}
 
       # Better Auth
-      # Note: NEXT_PUBLIC_APP_URL is set at build time, not runtime
+      # Note: NEXT_PUBLIC_APP_URL is set at build time for client-side code
+      # BETTER_AUTH_URL is needed at runtime for server-side Better Auth
+      - BETTER_AUTH_URL=https://chat.ryokino.com
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
