@@ -5,6 +5,7 @@ import { AuthButton } from "@/components/auth/AuthButton";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sidebar,
 	SidebarContent,
@@ -15,7 +16,6 @@ import {
 	SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import type { AISettings } from "@/lib/settings";
 import type { ConversationSummary } from "@/lib/sse-client";
 import { ConversationList } from "./ConversationList";

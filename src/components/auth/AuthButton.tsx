@@ -1,9 +1,9 @@
 "use client";
 
-import { useSession } from "@/components/SessionProvider";
-import { signIn } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useSession } from "@/components/SessionProvider";
+import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth-client";
 
 /**
  * 認証ボタンコンポーネント

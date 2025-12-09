@@ -1,7 +1,7 @@
 "use client";
 
+import { LogOut, User } from "lucide-react";
 import { useSession } from "@/components/SessionProvider";
-import { signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -11,7 +11,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { signOut } from "@/lib/auth-client";
 
 /**
  * 認証済みユーザーメニューコンポーネント
@@ -45,7 +45,10 @@ export function UserMenu() {
 		<DropdownMenu>
 			<DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-2 hover:bg-accent w-full">
 				<Avatar className="h-8 w-8">
-					<AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+					<AvatarImage
+						src={user.image || undefined}
+						alt={user.name || "User"}
+					/>
 					<AvatarFallback>{userInitials}</AvatarFallback>
 				</Avatar>
 				<div className="flex flex-col items-start flex-1 min-w-0">

@@ -40,7 +40,8 @@ declare global {
 	var _mongoClient: MongoClient | undefined;
 }
 
-const mongoClient = global._mongoClient || new MongoClient(process.env.DATABASE_URL as string);
+const mongoClient =
+	global._mongoClient || new MongoClient(process.env.DATABASE_URL as string);
 
 if (process.env.NODE_ENV !== "production") {
 	global._mongoClient = mongoClient;
