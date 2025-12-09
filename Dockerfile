@@ -40,6 +40,10 @@ COPY . .
 RUN pnpm exec prisma generate
 
 # Build the application
+# Accept build arguments for Next.js public environment variables
+ARG NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+
 # Note: DATABASE_URL is needed at build time for Prisma but actual connection happens at runtime
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL="mongodb://placeholder:27017/placeholder"

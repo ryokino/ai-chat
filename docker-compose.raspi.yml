@@ -21,10 +21,8 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY}
 
-      # App URL (本番環境)
-      - NEXT_PUBLIC_APP_URL=https://chat.ryokino.com
-
       # Better Auth
+      # Note: NEXT_PUBLIC_APP_URL is set at build time, not runtime
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
