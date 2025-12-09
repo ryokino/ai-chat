@@ -16,11 +16,19 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** AI設定の型定義 */
+interface AISettings {
+	systemPrompt?: string;
+	maxTokens?: number;
+	temperature?: number;
+}
+
 /** チャットリクエストボディの型定義 */
 interface ChatRequestBody {
 	message: string;
 	sessionId: string;
 	conversationId?: string;
+	settings?: AISettings;
 }
 
 /** メッセージを含む会話オブジェクトの型 */
@@ -54,7 +62,7 @@ type ConversationWithMessages = {
 export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;
-		const { message, sessionId, conversationId } = body;
+		const { message, sessionId, conversationId, settings } = body;
 
 		if (!message || !sessionId) {
 			return new Response(
@@ -127,10 +135,28 @@ export async function POST(request: NextRequest) {
 		// Add current user message
 		conversationHistory.push({ role: "user", content: message });
 
+		// Build stream options with custom settings
+		const streamOptions: {
+			instructions?: string;
+			maxTokens?: number;
+			temperature?: number;
+		} = {};
+
+		if (settings?.systemPrompt) {
+			streamOptions.instructions = settings.systemPrompt;
+		}
+		if (settings?.maxTokens) {
+			streamOptions.maxTokens = settings.maxTokens;
+		}
+		if (settings?.temperature !== undefined) {
+			streamOptions.temperature = settings.temperature;
+		}
+
 		// Stream response from Mastra agent
 		// Note: Using type assertion as Mastra's stream method accepts message arrays
 		const stream = await chatAgent.stream(
 			conversationHistory as Parameters<typeof chatAgent.stream>[0],
+			Object.keys(streamOptions).length > 0 ? streamOptions : undefined,
 		);
 
 		// Create a ReadableStream to send SSE

@@ -595,17 +595,37 @@
 - [x] テーマ切り替えボタン追加
 
 ### 15.2 AI設定（グローバル）
-- [ ] 設定の型定義と保存/読み込み機能（localStorage）
-- [ ] システムプロンプトのカスタマイズ
+- [x] 設定の型定義と保存/読み込み機能（localStorage）
+  - `src/lib/settings.ts` - 型定義、デフォルト値、localStorage関数
+- [x] システムプロンプトのカスタマイズ
   - デフォルト: 医学教育向け、ソクラテス式問答、厳しい先生キャラ
-- [ ] レスポンス長の設定（max_tokens: 1024 / 2048 / 4096）
-- [ ] Temperature の設定（0.0 - 1.0、デフォルト: 0.3）
-- [ ] 設定ダイアログUI（shadcn/ui Dialog）
+- [x] レスポンス長の設定（max_tokens: 1024 / 2048 / 4096）
+- [x] Temperature の設定（0.0 - 1.0、デフォルト: 0.3）
+- [x] 設定ダイアログUI（shadcn/ui Dialog）
+  - `src/components/settings/SettingsDialog.tsx`
+- [x] 設定管理フック
+  - `src/hooks/useSettings.ts`
+- [x] APIルートに設定を反映
+  - `src/app/api/chat/route.ts` - リクエストから設定を受け取りMastraに渡す
+  - `src/lib/sse-client.ts` - 設定を送信
+  - `src/hooks/useChat.ts` - 設定を渡す
+- [x] テスト作成
+  - [x] `src/lib/settings.test.ts` - 設定の保存/読み込みテスト
+  - [x] `src/hooks/useSettings.test.ts` - フックのテスト
+  - [x] `src/components/settings/SettingsDialog.test.tsx` - UIコンポーネントテスト
 
 ### 15.3 メッセージ編集・再生成
-- [ ] ユーザーメッセージの編集機能
-- [ ] AIレスポンスの再生成機能
-- [ ] メッセージ削除API
+- [x] ユーザーメッセージの編集機能
+  - `src/components/chat/Message.tsx` - 編集ボタン・編集UI追加
+  - `src/hooks/useChat.ts` - editMessage関数追加
+- [x] AIレスポンスの再生成機能
+  - `src/components/chat/Message.tsx` - 再生成ボタン追加
+  - `src/hooks/useChat.ts` - regenerateMessage関数追加
+- [x] メッセージ削除API
+  - `src/app/api/messages/[id]/route.ts` - DELETE API（deleteAfterオプション付き）
+  - `src/lib/sse-client.ts` - deleteMessage関数追加
+- [x] テスト作成
+  - `src/app/api/messages/[id]/route.test.ts` - APIテスト（6件）
 
 ---
 

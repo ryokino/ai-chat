@@ -4,6 +4,7 @@ import { useConversation } from "@/components/ConversationProvider";
 import { useSession } from "@/components/SessionProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useChat } from "@/hooks/useChat";
+import { useSettings } from "@/hooks/useSettings";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 
@@ -18,17 +19,21 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 		setActiveConversationId,
 		refetch: refetchConversations,
 	} = useConversation();
+	const { settings, isLoaded: isSettingsLoaded } = useSettings();
 
 	const {
 		messages,
 		isLoading,
 		error,
 		sendMessage,
+		editMessage,
+		regenerateMessage,
 		clearError,
 		isInitialLoading,
 	} = useChat({
 		sessionId: sessionId || "",
 		conversationId: activeConversationId,
+		settings: isSettingsLoaded ? settings : undefined,
 		onError: (err) => {
 			console.error("Chat error:", err);
 		},
@@ -81,6 +86,8 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 						messages={messages}
 						className="h-full pb-[120px]"
 						isLoading={isLoading}
+						onEditMessage={editMessage}
+						onRegenerateMessage={regenerateMessage}
 					/>
 				</div>
 				{error && (

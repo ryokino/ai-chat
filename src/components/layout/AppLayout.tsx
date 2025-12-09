@@ -8,6 +8,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useSettings } from "@/hooks/useSettings";
 
 interface AppLayoutProps {
 	children: ReactNode;
@@ -22,6 +23,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 		deleteConversation,
 		updateTitle,
 	} = useConversation();
+
+	const { settings, updateSettings, resetSettings } = useSettings();
 
 	const handleNewConversation = async () => {
 		// 新規会話を作成せずに、activeConversationIdをnullにする
@@ -43,6 +46,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 				onNewConversation={handleNewConversation}
 				onDeleteConversation={deleteConversation}
 				onUpdateTitle={updateTitle}
+				settings={settings}
+				onUpdateSettings={updateSettings}
+				onResetSettings={resetSettings}
 			/>
 			<SidebarInset>
 				<header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">

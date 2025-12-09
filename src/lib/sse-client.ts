@@ -121,18 +121,27 @@ export async function processSSEStream(
 	}
 }
 
+/** AI設定の型定義 */
+export interface AISettings {
+	systemPrompt?: string;
+	maxTokens?: number;
+	temperature?: number;
+}
+
 /**
  * チャットメッセージをストリーミング送信
  * @param message - 送信するメッセージ
  * @param sessionId - セッションID
  * @param conversationId - 会話ID（オプション、指定しない場合は新規作成）
  * @param options - SSEオプション
+ * @param settings - AI設定（オプション）
  */
 export async function sendChatMessage(
 	message: string,
 	sessionId: string,
 	conversationId: string | null,
 	options: SSEOptions = {},
+	settings?: AISettings,
 ): Promise<void> {
 	const response = await fetch("/api/chat", {
 		method: "POST",
@@ -143,6 +152,7 @@ export async function sendChatMessage(
 			message,
 			sessionId,
 			...(conversationId && { conversationId }),
+			...(settings && { settings }),
 		}),
 	});
 
@@ -291,6 +301,32 @@ export async function generateConversationTitle(
 
 	if (!response.ok) {
 		throw new Error(`Failed to generate title: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * メッセージを削除
+ * @param messageId - 削除するメッセージのID
+ * @param sessionId - セッションID
+ * @param deleteAfter - このメッセージ以降を全て削除するか（デフォルト: false）
+ */
+export async function deleteMessage(
+	messageId: string,
+	sessionId: string,
+	deleteAfter = false,
+): Promise<{ success: boolean; deletedCount: number }> {
+	const response = await fetch(`/api/messages/${messageId}`, {
+		method: "DELETE",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ sessionId, deleteAfter }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to delete message: ${response.status}`);
 	}
 
 	return response.json();

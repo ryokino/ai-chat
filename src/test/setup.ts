@@ -1,5 +1,12 @@
 import "@testing-library/jest-dom";
 
+// ResizeObserverのモック（Radix UIコンポーネントで必要）
+global.ResizeObserver = class ResizeObserver {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+};
+
 // localStorageのモック
 class LocalStorageMock {
 	private store: Record<string, string> = {};

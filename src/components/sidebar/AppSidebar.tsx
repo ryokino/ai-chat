@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot } from "lucide-react";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
 	Sidebar,
@@ -12,6 +13,7 @@ import {
 	SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { AISettings } from "@/lib/settings";
 import type { ConversationSummary } from "@/lib/sse-client";
 import { ConversationList } from "./ConversationList";
 import { NewConversationButton } from "./NewConversationButton";
@@ -24,6 +26,9 @@ interface AppSidebarProps {
 	onNewConversation: () => void;
 	onDeleteConversation: (id: string) => Promise<void>;
 	onUpdateTitle: (id: string, title: string) => Promise<void>;
+	settings: AISettings;
+	onUpdateSettings: (settings: Partial<AISettings>) => void;
+	onResetSettings: () => void;
 }
 
 export function AppSidebar({
@@ -34,6 +39,9 @@ export function AppSidebar({
 	onNewConversation,
 	onDeleteConversation,
 	onUpdateTitle,
+	settings,
+	onUpdateSettings,
+	onResetSettings,
 }: AppSidebarProps) {
 	return (
 		<Sidebar>
@@ -81,7 +89,14 @@ export function AppSidebar({
 					<span className="text-xs text-muted-foreground">
 						Powered by Claude
 					</span>
-					<ThemeToggle />
+					<div className="flex items-center gap-1">
+						<SettingsDialog
+							settings={settings}
+							onUpdate={onUpdateSettings}
+							onReset={onResetSettings}
+						/>
+						<ThemeToggle />
+					</div>
 				</div>
 			</SidebarFooter>
 		</Sidebar>

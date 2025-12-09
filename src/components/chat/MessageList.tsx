@@ -8,12 +8,16 @@ interface MessageListProps {
 	messages: MessageProps[];
 	className?: string;
 	isLoading?: boolean;
+	onEditMessage?: (messageId: string, newContent: string) => void;
+	onRegenerateMessage?: (messageId: string) => void;
 }
 
 export const MessageList = memo(function MessageList({
 	messages,
 	className,
 	isLoading = false,
+	onEditMessage,
+	onRegenerateMessage,
 }: MessageListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +46,9 @@ export const MessageList = memo(function MessageList({
 						sender={message.sender}
 						content={message.content}
 						createdAt={message.createdAt}
+						onEdit={onEditMessage}
+						onRegenerate={onRegenerateMessage}
+						isLoading={isLoading}
 					/>
 				))}
 				{isLoading && (

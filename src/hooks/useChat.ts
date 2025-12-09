@@ -2,7 +2,9 @@ import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { MessageProps } from "@/components/chat/Message";
+import type { AISettings } from "@/lib/settings";
 import {
+	deleteMessage,
 	fetchConversation,
 	generateConversationTitle,
 	sendChatMessage,
@@ -11,6 +13,7 @@ import {
 export interface UseChatOptions {
 	sessionId: string;
 	conversationId: string | null;
+	settings?: AISettings;
 	onError?: (error: Error) => void;
 	onNewConversation?: (conversationId: string) => void;
 	onTitleGenerated?: () => void;
@@ -21,6 +24,8 @@ export interface UseChatReturn {
 	isLoading: boolean;
 	error: string | null;
 	sendMessage: (content: string) => Promise<void>;
+	editMessage: (messageId: string, newContent: string) => Promise<void>;
+	regenerateMessage: (messageId: string) => Promise<void>;
 	clearError: () => void;
 	isInitialLoading: boolean;
 	clearMessages: () => void;
@@ -33,6 +38,7 @@ export interface UseChatReturn {
 export function useChat({
 	sessionId,
 	conversationId,
+	settings,
 	onError,
 	onNewConversation,
 	onTitleGenerated,
@@ -122,62 +128,71 @@ export function useChat({
 				]);
 
 				// SSEストリーミングでメッセージを送信
-				await sendChatMessage(content.trim(), sessionId, conversationId, {
-					onMessage: (data: string) => {
-						try {
-							const parsed = JSON.parse(data);
-							if (parsed.content) {
-								assistantContent += parsed.content;
-								setMessages((prev) =>
-									prev.map((msg) =>
-										msg.id === assistantMessageId
-											? { ...msg, content: assistantContent }
-											: msg,
-									),
-								);
-							}
-
-							if (parsed.error) {
-								throw new Error(parsed.error);
-							}
-						} catch (parseError) {
-							console.error("Error parsing SSE data:", parseError);
-						}
-					},
-					onConversationInfo: async (info) => {
-						// 新しい会話が作成された場合、コールバックを呼ぶ
-						if (info.isNewConversation && onNewConversation) {
-							onNewConversation(info.conversationId);
-
-							// タイトルを自動生成
+				await sendChatMessage(
+					content.trim(),
+					sessionId,
+					conversationId,
+					{
+						onMessage: (data: string) => {
 							try {
-								await generateConversationTitle(info.conversationId, sessionId);
-								onTitleGenerated?.();
-							} catch (titleErr) {
-								console.error("Failed to generate title:", titleErr);
-								// タイトル生成の失敗は致命的ではないのでエラーを表示しない
-							}
-						}
-					},
-					onError: (err: Error) => {
-						console.error("SSE stream error:", err);
-						const errorMessage =
-							err.message || "メッセージの送信に失敗しました";
-						setError(errorMessage);
-						toast.error("エラーが発生しました", {
-							description: errorMessage,
-						});
-						onError?.(err);
+								const parsed = JSON.parse(data);
+								if (parsed.content) {
+									assistantContent += parsed.content;
+									setMessages((prev) =>
+										prev.map((msg) =>
+											msg.id === assistantMessageId
+												? { ...msg, content: assistantContent }
+												: msg,
+										),
+									);
+								}
 
-						// エラー時はアシスタントメッセージを削除
-						setMessages((prev) =>
-							prev.filter((msg) => msg.id !== assistantMessageId),
-						);
+								if (parsed.error) {
+									throw new Error(parsed.error);
+								}
+							} catch (parseError) {
+								console.error("Error parsing SSE data:", parseError);
+							}
+						},
+						onConversationInfo: async (info) => {
+							// 新しい会話が作成された場合、コールバックを呼ぶ
+							if (info.isNewConversation && onNewConversation) {
+								onNewConversation(info.conversationId);
+
+								// タイトルを自動生成
+								try {
+									await generateConversationTitle(
+										info.conversationId,
+										sessionId,
+									);
+									onTitleGenerated?.();
+								} catch (titleErr) {
+									console.error("Failed to generate title:", titleErr);
+									// タイトル生成の失敗は致命的ではないのでエラーを表示しない
+								}
+							}
+						},
+						onError: (err: Error) => {
+							console.error("SSE stream error:", err);
+							const errorMessage =
+								err.message || "メッセージの送信に失敗しました";
+							setError(errorMessage);
+							toast.error("エラーが発生しました", {
+								description: errorMessage,
+							});
+							onError?.(err);
+
+							// エラー時はアシスタントメッセージを削除
+							setMessages((prev) =>
+								prev.filter((msg) => msg.id !== assistantMessageId),
+							);
+						},
+						onComplete: () => {
+							console.log("Message streaming completed");
+						},
 					},
-					onComplete: () => {
-						console.log("Message streaming completed");
-					},
-				});
+					settings,
+				);
 			} catch (err) {
 				const errorMessage =
 					err instanceof Error ? err.message : "エラーが発生しました";
@@ -200,6 +215,7 @@ export function useChat({
 		[
 			sessionId,
 			conversationId,
+			settings,
 			isLoading,
 			onError,
 			onNewConversation,
@@ -207,11 +223,93 @@ export function useChat({
 		],
 	);
 
+	/**
+	 * ユーザーメッセージを編集して再送信
+	 * 編集したメッセージ以降を削除し、新しい内容で再送信する
+	 */
+	const editMessage = useCallback(
+		async (messageId: string, newContent: string) => {
+			if (!sessionId || !conversationId || isLoading) return;
+
+			const messageIndex = messages.findIndex((msg) => msg.id === messageId);
+			if (messageIndex === -1) return;
+
+			const message = messages[messageIndex];
+			if (message.sender !== "user") return;
+
+			try {
+				// メッセージ以降をDBから削除
+				await deleteMessage(messageId, sessionId, true);
+
+				// ローカルの状態を更新（編集したメッセージ以降を削除）
+				setMessages((prev) => prev.slice(0, messageIndex));
+
+				// 新しい内容で再送信
+				await sendMessage(newContent);
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "編集に失敗しました";
+				setError(errorMessage);
+				toast.error("編集に失敗しました", {
+					description: errorMessage,
+				});
+				onError?.(err instanceof Error ? err : new Error("Edit failed"));
+			}
+		},
+		[sessionId, conversationId, messages, isLoading, sendMessage, onError],
+	);
+
+	/**
+	 * AIレスポンスを再生成
+	 * 指定したアシスタントメッセージを削除し、直前のユーザーメッセージで再送信する
+	 */
+	const regenerateMessage = useCallback(
+		async (messageId: string) => {
+			if (!sessionId || !conversationId || isLoading) return;
+
+			const messageIndex = messages.findIndex((msg) => msg.id === messageId);
+			if (messageIndex === -1) return;
+
+			const message = messages[messageIndex];
+			if (message.sender !== "assistant") return;
+
+			// 直前のユーザーメッセージを取得
+			const previousUserMessage = messages
+				.slice(0, messageIndex)
+				.reverse()
+				.find((msg) => msg.sender === "user");
+
+			if (!previousUserMessage) return;
+
+			try {
+				// アシスタントメッセージ以降をDBから削除
+				await deleteMessage(messageId, sessionId, true);
+
+				// ローカルの状態を更新（再生成するメッセージ以降を削除）
+				setMessages((prev) => prev.slice(0, messageIndex));
+
+				// 直前のユーザーメッセージの内容で再送信
+				await sendMessage(previousUserMessage.content);
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "再生成に失敗しました";
+				setError(errorMessage);
+				toast.error("再生成に失敗しました", {
+					description: errorMessage,
+				});
+				onError?.(err instanceof Error ? err : new Error("Regenerate failed"));
+			}
+		},
+		[sessionId, conversationId, messages, isLoading, sendMessage, onError],
+	);
+
 	return {
 		messages,
 		isLoading,
 		error,
 		sendMessage,
+		editMessage,
+		regenerateMessage,
 		clearError,
 		isInitialLoading,
 		clearMessages,
