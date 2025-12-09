@@ -10,7 +10,8 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 interface DeleteRequestBody {
-	sessionId: string;
+	sessionId?: string;
+	userId?: string;
 	deleteAfter?: boolean; // このメッセージ以降を全て削除するか
 }
 
@@ -25,13 +26,17 @@ export async function DELETE(
 	try {
 		const { id: messageId } = await params;
 		const body = (await request.json()) as DeleteRequestBody;
-		const { sessionId, deleteAfter = false } = body;
+		const { sessionId, userId, deleteAfter = false } = body;
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		// sessionId または userId のいずれかが必須
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
 		// メッセージを取得して所有権を確認
@@ -49,8 +54,12 @@ export async function DELETE(
 			});
 		}
 
-		// セッションIDの検証
-		if (message.conversation.sessionId !== sessionId) {
+		// 所有権の検証（sessionId または userId）
+		const isOwner = userId
+			? message.conversation.userId === userId
+			: message.conversation.sessionId === sessionId;
+
+		if (!isOwner) {
 			return new Response(JSON.stringify({ error: "Unauthorized" }), {
 				status: 403,
 				headers: { "Content-Type": "application/json" },

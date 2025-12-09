@@ -766,12 +766,14 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
   - AuthButton, UserMenu のテスト修正（user型にcreatedAt, updatedAt, emailVerifiedを追加）
 
 ### 19.11 APIルート userId 対応完了
-- [ ] `src/app/api/messages/[id]/route.ts` - userId 対応
-  - 現在は sessionId のみ対応
-  - 認証ユーザーのメッセージ編集/再生成が失敗する問題を修正
-- [ ] `src/app/api/conversations/generate-title/route.ts` - userId 対応
-  - 現在は sessionId のみ対応
-  - 認証ユーザーのタイトル自動生成が失敗する問題を修正
+- [x] `src/app/api/messages/[id]/route.ts` - userId 対応
+  - sessionId または userId のいずれかが必須に変更
+  - 所有権検証をuserId対応に修正
+  - 認証ユーザーのメッセージ編集/再生成が動作するように修正
+- [x] `src/app/api/conversations/generate-title/route.ts` - userId 対応
+  - sessionId または userId のいずれかが必須に変更
+  - 会話取得クエリをuserId対応に修正
+  - 認証ユーザーのタイトル自動生成が動作するように修正
 
 ---
 

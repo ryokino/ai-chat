@@ -17,11 +17,12 @@ User message: `;
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
-		const { conversationId, sessionId } = body;
+		const { conversationId, sessionId, userId } = body;
 
-		if (!conversationId || !sessionId) {
+		// conversationId が必須
+		if (!conversationId) {
 			return new Response(
-				JSON.stringify({ error: "conversationId and sessionId are required" }),
+				JSON.stringify({ error: "conversationId is required" }),
 				{
 					status: 400,
 					headers: { "Content-Type": "application/json" },
@@ -29,9 +30,24 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// 会話を取得（セッションIDで検証）
+		// sessionId または userId のいずれかが必須
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		}
+
+		// 会話を取得（sessionId または userId で検証）
+		const whereClause = userId
+			? { id: conversationId, userId }
+			: { id: conversationId, sessionId };
+
 		const conversation = await prisma.conversation.findFirst({
-			where: { id: conversationId, sessionId },
+			where: whereClause,
 			include: {
 				messages: {
 					where: { role: "user" },
