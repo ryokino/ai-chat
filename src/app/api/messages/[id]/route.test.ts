@@ -13,6 +13,11 @@ vi.mock("@/lib/prisma", () => ({
 	},
 }));
 
+// 認証のモック
+vi.mock("@/lib/auth", () => ({
+	getAuthenticatedUserId: vi.fn(),
+}));
+
 import { prisma } from "@/lib/prisma";
 
 describe("/api/messages/[id] DELETE", () => {
@@ -162,5 +167,41 @@ describe("/api/messages/[id] DELETE", () => {
 		expect(response.status).toBe(500);
 		const json = await response.json();
 		expect(json.error).toBe("Database error");
+	});
+
+	it("should return 403 when userId does not match authenticated session", async () => {
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return different userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-777");
+
+		const mockMessage = {
+			id: "msg-123",
+			conversationId: "conv-123",
+			role: "user",
+			content: "Hello",
+			createdAt: new Date(),
+			conversation: {
+				id: "conv-123",
+				userId: "owner-user-555",
+				sessionId: null,
+				title: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+		};
+
+		vi.mocked(prisma.message.findUnique).mockResolvedValue(
+			mockMessage as Awaited<ReturnType<typeof prisma.message.findUnique>>,
+		);
+
+		const request = createRequest({ userId: "spoofed-user-999" });
+		const response = await DELETE(request, { params: mockParams });
+
+		expect(response.status).toBe(403);
+		const json = await response.json();
+		expect(json.error).toBe(
+			"Unauthorized: userId does not match authenticated session",
+		);
 	});
 });

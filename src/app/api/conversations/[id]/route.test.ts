@@ -15,6 +15,11 @@ vi.mock("@/lib/prisma", () => ({
 	},
 }));
 
+// 認証のモック
+vi.mock("@/lib/auth", () => ({
+	getAuthenticatedUserId: vi.fn(),
+}));
+
 describe("/api/conversations/[id] GET", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -79,6 +84,10 @@ describe("/api/conversations/[id] GET", () => {
 
 	it("userIdで会話を取得できる", async () => {
 		const { prisma } = await import("@/lib/prisma");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-123");
 
 		const mockConversation = {
 			id: "conv-2",

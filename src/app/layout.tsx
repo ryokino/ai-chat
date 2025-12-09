@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { ConversationProvider } from "@/components/ConversationProvider";
 import { SessionProvider } from "@/components/SessionProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -32,17 +33,19 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background font-sans`}
 			>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="system"
-					enableSystem
-					disableTransitionOnChange
-				>
-					<SessionProvider>
-						<ConversationProvider>{children}</ConversationProvider>
-					</SessionProvider>
-					<Toaster position="top-center" richColors closeButton />
-				</ThemeProvider>
+				<ErrorBoundary>
+					<ThemeProvider
+						attribute="class"
+						defaultTheme="system"
+						enableSystem
+						disableTransitionOnChange
+					>
+						<SessionProvider>
+							<ConversationProvider>{children}</ConversationProvider>
+						</SessionProvider>
+						<Toaster position="top-center" richColors closeButton />
+					</ThemeProvider>
+				</ErrorBoundary>
 			</body>
 		</html>
 	);

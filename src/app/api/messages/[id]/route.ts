@@ -6,6 +6,7 @@
 
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUserId } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,22 @@ export async function DELETE(
 		const { id: messageId } = await params;
 		const body = (await request.json()) as DeleteRequestBody;
 		const { sessionId, userId, deleteAfter = false } = body;
+
+		// サーバーサイドで認証検証
+		const authenticatedUserId = await getAuthenticatedUserId(request);
+
+		// userIdが指定されている場合、認証セッションと一致するか確認
+		if (userId && userId !== authenticatedUserId) {
+			return new Response(
+				JSON.stringify({
+					error: "Unauthorized: userId does not match authenticated session",
+				}),
+				{
+					status: 403,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		}
 
 		// sessionId または userId のいずれかが必須
 		if (!sessionId && !userId) {
