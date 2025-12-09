@@ -1,6 +1,7 @@
 "use client";
 
 import { Bot } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
 	Sidebar,
 	SidebarContent,
@@ -76,8 +77,11 @@ export function AppSidebar({
 			</SidebarContent>
 
 			<SidebarFooter className="border-t">
-				<div className="px-4 py-2 text-xs text-muted-foreground">
-					Powered by Claude
+				<div className="flex items-center justify-between px-2 py-2">
+					<span className="text-xs text-muted-foreground">
+						Powered by Claude
+					</span>
+					<ThemeToggle />
 				</div>
 			</SidebarFooter>
 		</Sidebar>
