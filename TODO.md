@@ -311,7 +311,10 @@
 - [x] ローディングインジケーター
   - [x] メッセージ送信中の表示
   - [x] 会話履歴読み込み中の表示
-- [ ] スケルトンUI（任意）
+- [x] スケルトンUI
+  - [x] ConversationListSkeleton - 会話一覧読み込み中
+  - [x] MessageListSkeleton - メッセージ読み込み中
+  - [x] ChatWindow で初回ローディング時にスケルトン表示
 - [x] アニメーション追加（任意）
   - [x] メッセージのフェードイン（animate-bounce）
   - [x] スムーズなスクロール（scrollIntoView）
@@ -329,11 +332,11 @@
 - [x] `src/lib/session.ts` のテスト
   - [x] セッションID生成のテスト
   - [x] セッション取得/保存のテスト
-- [ ] `src/lib/claude.ts` のテスト（モック使用）
-  - [ ] API呼び出しのモック
-  - [ ] エラーハンドリングのテスト
-- [ ] `src/lib/prisma.ts` のテスト
-  - [ ] シングルトンパターンの検証
+- [x] `src/lib/claude.ts` のテスト（モック使用）
+  - [x] API呼び出しのモック
+  - [x] エラーハンドリングのテスト
+- [x] `src/lib/prisma.ts` のテスト
+  - [x] シングルトンパターンの検証
 
 ### 9.2 コンポーネントテスト（React Testing Library）
 - [x] `components/chat/Message.tsx` のテスト
@@ -690,39 +693,70 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 ## Phase 19: 認証機能（Better Auth + Google OAuth）
 
 ### 19.1 セットアップ
-- [ ] `pnpm add better-auth` インストール
-- [ ] 環境変数設定（BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET）
-- [ ] Google Cloud Console で OAuth クライアント作成
+- [x] `pnpm add better-auth` インストール
+- [x] 環境変数設定（BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET）
+- [x] Google Cloud Console で OAuth クライアント作成
 
 ### 19.2 Better Auth 設定
-- [ ] `src/lib/auth.ts` 作成（Better Auth サーバー設定）
-- [ ] `src/lib/auth-client.ts` 作成（クライアント設定）
-- [ ] `src/app/api/auth/[...all]/route.ts` 作成（APIルート）
+- [x] `src/lib/auth.ts` 作成（Better Auth サーバー設定）
+  - [x] 環境に応じてbaseURLを自動設定する関数追加
+- [x] `src/lib/auth-client.ts` 作成（クライアント設定）
+- [x] `src/app/api/auth/[...all]/route.ts` 作成（APIルート）
 
 ### 19.3 Prisma スキーマ更新
-- [ ] User, Session, Account, Verification モデル追加
-- [ ] Conversation モデルに userId フィールド追加
-- [ ] `npx prisma generate && npx prisma db push`
+- [x] User, Session, Account, Verification モデル追加
+- [x] Conversation モデルに userId フィールド追加
+- [x] `npx prisma generate && npx prisma db push`
 
 ### 19.4 SessionProvider 統合
-- [ ] `src/components/SessionProvider.tsx` を Better Auth と統合
-- [ ] 認証済み: userId を使用
-- [ ] 未認証: localStorage の sessionId を使用（後方互換）
+- [x] `src/components/SessionProvider.tsx` を Better Auth と統合
+- [x] 認証済み: userId を使用
+- [x] 未認証: localStorage の sessionId を使用（後方互換）
 
 ### 19.5 API ルート更新
-- [ ] `src/app/api/chat/route.ts` - userId 対応
-- [ ] `src/app/api/conversations/route.ts` - userId 対応
-- [ ] `src/app/api/conversations/[id]/route.ts` - userId 対応
+- [x] `src/app/api/chat/route.ts` - userId 対応
+- [x] `src/app/api/conversations/route.ts` - userId 対応
+- [x] `src/app/api/conversations/[id]/route.ts` - userId 対応
+- [x] `src/lib/sse-client.ts` - 全関数を userId 対応
+- [x] `src/hooks/useConversations.ts` - userId パラメータ追加
+- [x] `src/hooks/useChat.ts` - userId パラメータ追加
+- [x] `src/components/ConversationProvider.tsx` - userId を伝播
+- [x] `src/components/chat/ChatWindow.tsx` - userId を useChat に渡す
 
 ### 19.6 認証 UI
-- [ ] `src/components/auth/AuthButton.tsx` 作成
-- [ ] `src/components/auth/UserMenu.tsx` 作成
-- [ ] `src/components/sidebar/AppSidebar.tsx` に認証UI追加
+- [x] `src/components/auth/AuthButton.tsx` 作成
+- [x] `src/components/auth/UserMenu.tsx` 作成
+- [x] `src/components/sidebar/AppSidebar.tsx` に認証UI追加
 
 ### 19.7 テスト
-- [ ] ユニットテスト: auth.ts, auth-client.ts
+- [x] ユニットテスト: AuthButton, UserMenu (11/11 passed)
 - [ ] Playwright E2Eテスト: Google OAuth フロー
 - [ ] Playwright E2Eテスト: 認証後のデバイス間同期確認
+
+### 19.8 環境変数・設定ファイル更新
+- [x] `.env.example` 更新 - BETTER_AUTH_URLをオプションに
+- [x] `docker-compose.raspi.yml` 更新 - 本番環境用環境変数追加
+- [x] `.env.local` 更新 - BETTER_AUTH_URL削除（自動取得）
+- [x] `Makefile` 作成 - 開発コマンドを簡素化
+
+### 19.9 Raspberry Pi デプロイ準備（@ryokino 手動作業）
+> **⚠️ デプロイ前に以下の作業が必要です！**
+
+- [ ] **@ryokino**: Raspberry Pi の `/path/to/ai-chat/.env` ファイルに以下を追加:
+  ```env
+  BETTER_AUTH_SECRET=（開発環境と同じ値）
+  GOOGLE_CLIENT_ID=（開発環境と同じ値）
+  GOOGLE_CLIENT_SECRET=（開発環境と同じ値）
+  TAVILY_API_KEY=（開発環境と同じ値）
+  ```
+- [ ] **@ryokino**: Raspberry Pi で docker compose を再起動:
+  ```bash
+  cd /path/to/ai-chat
+  docker compose down
+  docker compose up -d
+  ```
+- [x] **@ryokino**: Google Cloud Console で本番環境のリダイレクトURIを追加:
+  - `https://chat.ryokino.com/api/auth/callback/google`
 
 ---
 

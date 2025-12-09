@@ -7,13 +7,14 @@ import { useChat } from "@/hooks/useChat";
 import { useSettings } from "@/hooks/useSettings";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
+import { MessageListSkeleton } from "./MessageListSkeleton";
 
 interface ChatWindowProps {
 	title?: string;
 }
 
 export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
-	const { sessionId, isLoading: isSessionLoading } = useSession();
+	const { sessionId, userId, isLoading: isSessionLoading } = useSession();
 	const {
 		activeConversationId,
 		setActiveConversationId,
@@ -32,6 +33,7 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 		isInitialLoading,
 	} = useChat({
 		sessionId: sessionId || "",
+		userId,
 		conversationId: activeConversationId,
 		settings: isSettingsLoaded ? settings : undefined,
 		sessionLoading: isSessionLoading,
@@ -66,11 +68,11 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	if (isInitialLoading) {
 		return (
 			<Card className="flex h-full flex-col">
-				<CardHeader>
+				<CardHeader className="border-b shrink-0">
 					<CardTitle>{title}</CardTitle>
 				</CardHeader>
-				<CardContent className="flex flex-1 items-center justify-center">
-					<p className="text-muted-foreground">会話履歴を読み込み中...</p>
+				<CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
+					<MessageListSkeleton />
 				</CardContent>
 			</Card>
 		);
