@@ -256,9 +256,9 @@ describe("/api/conversations/generate-title POST", () => {
 			],
 		};
 
-		// 50文字を超える長いタイトル
+		// 50文字を超える長いタイトル (60文字)
 		const longTitle =
-			"これは50文字を超える非常に長いタイトルですこれは50文字を超える非常に長いタイトルです";
+			"これは50文字を超える非常に長いタイトルですこれは50文字を超える非常に長いタイトルですこれは60文字です";
 
 		const mockClaudeResponse = {
 			content: [

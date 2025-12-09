@@ -210,7 +210,7 @@ export function useChat({
 							);
 						},
 						onComplete: () => {
-							console.log("Message streaming completed");
+							// ストリーミング完了
 						},
 					},
 					settings,

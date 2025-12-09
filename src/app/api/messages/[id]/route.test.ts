@@ -30,13 +30,13 @@ describe("/api/messages/[id] DELETE", () => {
 
 	const mockParams = Promise.resolve({ id: "msg-123" });
 
-	it("should return 400 if sessionId is missing", async () => {
+	it("should return 400 if sessionId and userId are missing", async () => {
 		const request = createRequest({});
 		const response = await DELETE(request, { params: mockParams });
 
 		expect(response.status).toBe(400);
 		const json = await response.json();
-		expect(json.error).toBe("sessionId is required");
+		expect(json.error).toBe("sessionId or userId is required");
 	});
 
 	it("should return 404 if message not found", async () => {

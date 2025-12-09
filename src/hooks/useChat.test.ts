@@ -236,6 +236,7 @@ describe("useChat hook", () => {
 			expect(sseClient.deleteMessage).toHaveBeenCalledWith(
 				"msg-1",
 				"test-session",
+				null,
 				true,
 			);
 		});
@@ -329,6 +330,7 @@ describe("useChat hook", () => {
 			expect(sseClient.deleteMessage).toHaveBeenCalledWith(
 				"msg-2",
 				"test-session",
+				null,
 				true,
 			);
 		});

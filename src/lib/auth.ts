@@ -71,3 +71,22 @@ export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET as string,
 	baseURL: getBaseURL(),
 });
+
+/**
+ * サーバーサイドでセッションを検証し、認証済みユーザーIDを返す
+ * @param request - リクエストオブジェクト
+ * @returns userId (認証済み) または null (未認証)
+ */
+export async function getAuthenticatedUserId(
+	request: Request,
+): Promise<string | null> {
+	try {
+		const session = await auth.api.getSession({
+			headers: request.headers,
+		});
+		return session?.user?.id ?? null;
+	} catch (error) {
+		console.error("Failed to get authenticated user ID:", error);
+		return null;
+	}
+}

@@ -472,8 +472,8 @@ describe("/api/chat POST", () => {
 
 		expect(response.status).toBe(200);
 		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
-			where: { id: "conv-user-1" },
-			include: { messages: { orderBy: { createdAt: "asc" } } },
+			where: { id: "conv-user-1", userId: "user-123" },
+			include: { messages: true },
 		});
 	});
 });
