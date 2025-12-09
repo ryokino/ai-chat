@@ -233,6 +233,7 @@ describe("/api/chat POST", () => {
 				conversationId: "conv-1",
 				role: "user",
 				content: "Test message",
+				attachments: null,
 			},
 		});
 	});
