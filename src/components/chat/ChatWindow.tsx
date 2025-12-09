@@ -34,6 +34,7 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 		sessionId: sessionId || "",
 		conversationId: activeConversationId,
 		settings: isSettingsLoaded ? settings : undefined,
+		sessionLoading: isSessionLoading,
 		onError: (err) => {
 			console.error("Chat error:", err);
 		},

@@ -14,6 +14,7 @@ export interface UseChatOptions {
 	sessionId: string;
 	conversationId: string | null;
 	settings?: AISettings;
+	sessionLoading?: boolean;
 	onError?: (error: Error) => void;
 	onNewConversation?: (conversationId: string) => void;
 	onTitleGenerated?: () => void;
@@ -39,6 +40,7 @@ export function useChat({
 	sessionId,
 	conversationId,
 	settings,
+	sessionLoading = false,
 	onError,
 	onNewConversation,
 	onTitleGenerated,
@@ -241,7 +243,7 @@ export function useChat({
 	 */
 	const editMessage = useCallback(
 		async (messageId: string, newContent: string) => {
-			if (!sessionId || !conversationId || isLoading) return;
+			if (!sessionId || !conversationId || isLoading || sessionLoading) return;
 
 			const messageIndex = messages.findIndex((msg) => msg.id === messageId);
 			if (messageIndex === -1) return;
@@ -268,7 +270,15 @@ export function useChat({
 				onError?.(err instanceof Error ? err : new Error("Edit failed"));
 			}
 		},
-		[sessionId, conversationId, messages, isLoading, sendMessage, onError],
+		[
+			sessionId,
+			conversationId,
+			messages,
+			isLoading,
+			sessionLoading,
+			sendMessage,
+			onError,
+		],
 	);
 
 	/**
@@ -277,7 +287,7 @@ export function useChat({
 	 */
 	const regenerateMessage = useCallback(
 		async (messageId: string) => {
-			if (!sessionId || !conversationId || isLoading) return;
+			if (!sessionId || !conversationId || isLoading || sessionLoading) return;
 
 			const messageIndex = messages.findIndex((msg) => msg.id === messageId);
 			if (messageIndex === -1) return;
@@ -312,7 +322,15 @@ export function useChat({
 				onError?.(err instanceof Error ? err : new Error("Regenerate failed"));
 			}
 		},
-		[sessionId, conversationId, messages, isLoading, sendMessage, onError],
+		[
+			sessionId,
+			conversationId,
+			messages,
+			isLoading,
+			sessionLoading,
+			sendMessage,
+			onError,
+		],
 	);
 
 	return {
