@@ -9,6 +9,7 @@ vi.mock("@/lib/sse-client", () => ({
 	sendChatMessage: vi.fn(),
 	createConversation: vi.fn(),
 	generateConversationTitle: vi.fn(),
+	deleteMessage: vi.fn(),
 }));
 
 // Sonner toastのモック
@@ -151,5 +152,185 @@ describe("useChat hook", () => {
 		});
 
 		expect(result.current.messages).toEqual([]);
+	});
+
+	describe("editMessage with sessionLoading", () => {
+		it("should not call deleteMessage when sessionLoading is true", async () => {
+			vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+				conversation: { id: "conv-1", sessionId: "test-session" },
+				messages: [
+					{
+						id: "msg-1",
+						role: "user",
+						content: "Hello",
+						createdAt: "2024-01-01T12:00:00Z",
+					},
+					{
+						id: "msg-2",
+						role: "assistant",
+						content: "Hi there!",
+						createdAt: "2024-01-01T12:00:30Z",
+					},
+				],
+			});
+
+			const { result } = renderHook(() =>
+				useChat({
+					sessionId: "test-session",
+					conversationId: "conv-1",
+					sessionLoading: true,
+				}),
+			);
+
+			await waitFor(() => {
+				expect(result.current.messages).toHaveLength(2);
+			});
+
+			// sessionLoading=true の状態で editMessage を呼び出す
+			await act(async () => {
+				await result.current.editMessage("msg-1", "Updated message");
+			});
+
+			// deleteMessage が呼ばれていないことを確認
+			expect(sseClient.deleteMessage).not.toHaveBeenCalled();
+			// sendChatMessage も呼ばれていないことを確認
+			expect(sseClient.sendChatMessage).not.toHaveBeenCalled();
+		});
+
+		it("should call deleteMessage when sessionLoading is false", async () => {
+			vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+				conversation: { id: "conv-1", sessionId: "test-session" },
+				messages: [
+					{
+						id: "msg-1",
+						role: "user",
+						content: "Hello",
+						createdAt: "2024-01-01T12:00:00Z",
+					},
+				],
+			});
+
+			vi.mocked(sseClient.deleteMessage).mockResolvedValue({
+				success: true,
+				deletedCount: 1,
+			});
+
+			const { result } = renderHook(() =>
+				useChat({
+					sessionId: "test-session",
+					conversationId: "conv-1",
+					sessionLoading: false,
+				}),
+			);
+
+			await waitFor(() => {
+				expect(result.current.messages).toHaveLength(1);
+			});
+
+			// sessionLoading=false の状態で editMessage を呼び出す
+			await act(async () => {
+				await result.current.editMessage("msg-1", "Updated message");
+			});
+
+			// deleteMessage が呼ばれたことを確認
+			expect(sseClient.deleteMessage).toHaveBeenCalledWith(
+				"msg-1",
+				"test-session",
+				true,
+			);
+		});
+	});
+
+	describe("regenerateMessage with sessionLoading", () => {
+		it("should not call deleteMessage when sessionLoading is true", async () => {
+			vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+				conversation: { id: "conv-1", sessionId: "test-session" },
+				messages: [
+					{
+						id: "msg-1",
+						role: "user",
+						content: "Hello",
+						createdAt: "2024-01-01T12:00:00Z",
+					},
+					{
+						id: "msg-2",
+						role: "assistant",
+						content: "Hi there!",
+						createdAt: "2024-01-01T12:00:30Z",
+					},
+				],
+			});
+
+			const { result } = renderHook(() =>
+				useChat({
+					sessionId: "test-session",
+					conversationId: "conv-1",
+					sessionLoading: true,
+				}),
+			);
+
+			await waitFor(() => {
+				expect(result.current.messages).toHaveLength(2);
+			});
+
+			// sessionLoading=true の状態で regenerateMessage を呼び出す
+			await act(async () => {
+				await result.current.regenerateMessage("msg-2");
+			});
+
+			// deleteMessage が呼ばれていないことを確認
+			expect(sseClient.deleteMessage).not.toHaveBeenCalled();
+			// sendChatMessage も呼ばれていないことを確認
+			expect(sseClient.sendChatMessage).not.toHaveBeenCalled();
+		});
+
+		it("should call deleteMessage when sessionLoading is false", async () => {
+			vi.mocked(sseClient.fetchConversation).mockResolvedValue({
+				conversation: { id: "conv-1", sessionId: "test-session" },
+				messages: [
+					{
+						id: "msg-1",
+						role: "user",
+						content: "Hello",
+						createdAt: "2024-01-01T12:00:00Z",
+					},
+					{
+						id: "msg-2",
+						role: "assistant",
+						content: "Hi there!",
+						createdAt: "2024-01-01T12:00:30Z",
+					},
+				],
+			});
+
+			vi.mocked(sseClient.deleteMessage).mockResolvedValue({
+				success: true,
+				deletedCount: 1,
+			});
+
+			const { result } = renderHook(() =>
+				useChat({
+					sessionId: "test-session",
+					conversationId: "conv-1",
+					sessionLoading: false,
+				}),
+			);
+
+			await waitFor(() => {
+				expect(result.current.messages).toHaveLength(2);
+			});
+
+			// sessionLoading=false の状態で regenerateMessage を呼び出す
+			await act(async () => {
+				await result.current.regenerateMessage("msg-2");
+			});
+
+			// deleteMessage が呼ばれたことを確認
+			expect(sseClient.deleteMessage).toHaveBeenCalledWith(
+				"msg-2",
+				"test-session",
+				true,
+			);
+		});
 	});
 });

@@ -36,6 +36,11 @@
 - **データベース**: MongoDB Atlas
 - **クライアント**: Prisma Client (MongoDB connector)
 
+### 認証
+- **ライブラリ**: Better Auth
+- **認証方式**: Google OAuth 2.0
+- **セッション管理**: サーバーサイドセッション（MongoDB保存）
+
 ### デプロイ
 - **プラットフォーム**: Raspberry Pi (自宅サーバー)
   - Cloudflare Tunnel 経由で外部公開
@@ -73,27 +78,79 @@
 ## 認証・セキュリティ
 
 ### 認証
-- **要件**: なし
-- 匿名でのアクセスを許可
-- セッション管理はブラウザのCookieまたはlocalStorageで実施
+- **ライブラリ**: Better Auth
+- **認証方式**: Google OAuth 2.0
+- **後方互換**: 未認証ユーザーはlocalStorageのセッションIDで利用可能
 
 ### セッション管理
-- 初回アクセス時にセッションIDを生成
-- セッションIDをCookieまたはlocalStorageに保存
-- サーバー側でセッションIDに紐づく会話履歴を管理
+- **認証済みユーザー**: Better AuthのサーバーサイドセッションでuserIdを管理
+- **未認証ユーザー**: 初回アクセス時にセッションIDを生成、localStorageに保存
+- 会話データはuserId（認証済み）またはsessionId（未認証）に紐づけ
 
 ---
 
 ## データモデル
 
+### User (ユーザー)
+```prisma
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  conversations Conversation[]
+}
+```
+
+### Session (認証セッション)
+```prisma
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+### Account (OAuth アカウント)
+```prisma
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+}
+```
+
 ### Conversation (会話)
 ```prisma
 model Conversation {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  sessionId String   @db.String
+  sessionId String?  @db.String  // 匿名セッション用（後方互換）
+  userId    String?  @db.ObjectId  // 認証ユーザー用
+  user      User?    @relation(fields: [userId], references: [id])
+  title     String?  @db.String
   messages  Message[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([userId])
 }
 ```
 
@@ -216,8 +273,19 @@ DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/ai-chat?retryW
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Session
+# Session (レガシー: 未認証ユーザー用)
 SESSION_SECRET=your_random_secret_key
+
+# Better Auth (認証)
+BETTER_AUTH_SECRET=your_random_secret_key
+BETTER_AUTH_URL=http://localhost:3000
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Tavily (Web検索)
+TAVILY_API_KEY=your_tavily_api_key
 ```
 
 ---
@@ -359,3 +427,4 @@ SESSION_SECRET=your_random_secret_key
 - [Mastra Documentation](https://mastra.ai/docs)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+- [Better Auth Documentation](https://www.better-auth.com/docs)

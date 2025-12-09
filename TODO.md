@@ -671,6 +671,61 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 
 ---
 
+## Phase 18: 再生成機能の400エラー修正
+
+### 18.1 原因
+- `SessionProvider` の初期状態が `sessionId: ""`
+- `useEffect` で localStorage から読み込む前に操作すると空の sessionId で API が呼ばれる
+- 特にiOS Safariでタイミング問題が発生しやすい
+
+### 18.2 修正
+- [x] `src/hooks/useChat.ts` に sessionLoading チェック追加
+- [x] `src/components/ConversationProvider.tsx` で isLoading を伝播
+- [x] `src/components/chat/ChatWindow.tsx` で sessionLoading を渡す
+- [x] テスト: sessionLoading=true 時にAPIが呼ばれないこと
+- [x] Playwright E2Eテスト: 再生成機能の確認
+
+---
+
+## Phase 19: 認証機能（Better Auth + Google OAuth）
+
+### 19.1 セットアップ
+- [ ] `pnpm add better-auth` インストール
+- [ ] 環境変数設定（BETTER_AUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET）
+- [ ] Google Cloud Console で OAuth クライアント作成
+
+### 19.2 Better Auth 設定
+- [ ] `src/lib/auth.ts` 作成（Better Auth サーバー設定）
+- [ ] `src/lib/auth-client.ts` 作成（クライアント設定）
+- [ ] `src/app/api/auth/[...all]/route.ts` 作成（APIルート）
+
+### 19.3 Prisma スキーマ更新
+- [ ] User, Session, Account, Verification モデル追加
+- [ ] Conversation モデルに userId フィールド追加
+- [ ] `npx prisma generate && npx prisma db push`
+
+### 19.4 SessionProvider 統合
+- [ ] `src/components/SessionProvider.tsx` を Better Auth と統合
+- [ ] 認証済み: userId を使用
+- [ ] 未認証: localStorage の sessionId を使用（後方互換）
+
+### 19.5 API ルート更新
+- [ ] `src/app/api/chat/route.ts` - userId 対応
+- [ ] `src/app/api/conversations/route.ts` - userId 対応
+- [ ] `src/app/api/conversations/[id]/route.ts` - userId 対応
+
+### 19.6 認証 UI
+- [ ] `src/components/auth/AuthButton.tsx` 作成
+- [ ] `src/components/auth/UserMenu.tsx` 作成
+- [ ] `src/components/sidebar/AppSidebar.tsx` に認証UI追加
+
+### 19.7 テスト
+- [ ] ユニットテスト: auth.ts, auth-client.ts
+- [ ] Playwright E2Eテスト: Google OAuth フロー
+- [ ] Playwright E2Eテスト: 認証後のデバイス間同期確認
+
+---
+
 ## チェックリスト完了後
 
 - [ ] 全機能の最終動作確認
