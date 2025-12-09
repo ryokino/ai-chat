@@ -13,6 +13,8 @@ import {
 	getRateLimitHeaders,
 } from "@/lib/rate-limit";
 import { getAuthenticatedUserId } from "@/lib/auth";
+import type { ImageAttachment } from "@/types/attachment";
+import { convertToClaudeContent } from "@/lib/claude-multimodal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +33,7 @@ interface ChatRequestBody {
 	userId?: string; // 追加: 認証済みユーザーのID
 	conversationId?: string;
 	settings?: AISettings;
+	attachments?: ImageAttachment[]; // 追加: 画像添付
 }
 
 /** メッセージを含む会話オブジェクトの型 */
@@ -39,7 +42,13 @@ type ConversationWithMessages = {
 	sessionId: string | null;
 	userId: string | null;
 	title: string | null;
-	messages: { id: string; role: string; content: string; createdAt: Date }[];
+	messages: {
+		id: string;
+		role: string;
+		content: string;
+		attachments: unknown;
+		createdAt: Date;
+	}[];
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -65,7 +74,14 @@ type ConversationWithMessages = {
 export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;
-		const { message, sessionId, userId, conversationId, settings } = body;
+		const {
+			message,
+			sessionId,
+			userId,
+			conversationId,
+			settings,
+			attachments,
+		} = body;
 
 		// サーバーサイドで認証検証
 		const authenticatedUserId = await getAuthenticatedUserId(request);
@@ -144,23 +160,30 @@ export async function POST(request: NextRequest) {
 			});
 		}
 
-		// Save user message to database
+		// Save user message to database (with attachments if any)
 		await prisma.message.create({
 			data: {
 				conversationId: conversation.id,
 				role: "user",
 				content: message,
+				attachments: attachments || undefined,
 			},
 		});
 
 		// Get conversation history for context
 		const conversationHistory = conversation.messages.map((msg) => ({
 			role: msg.role as "user" | "assistant",
-			content: msg.content,
+			content: convertToClaudeContent(
+				msg.content,
+				msg.attachments as ImageAttachment[] | undefined,
+			),
 		}));
 
-		// Add current user message
-		conversationHistory.push({ role: "user", content: message });
+		// Add current user message (with attachments if any)
+		conversationHistory.push({
+			role: "user",
+			content: convertToClaudeContent(message, attachments),
+		});
 
 		// Build stream options with custom settings
 		const streamOptions: {

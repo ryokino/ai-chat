@@ -4,6 +4,7 @@ import {
 	Bot,
 	ExternalLink,
 	Globe,
+	ImageIcon,
 	Pencil,
 	RefreshCw,
 	User,
@@ -15,6 +16,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { ImageAttachment } from "@/types/attachment";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 
 /**
  * 検索ソース情報
@@ -31,6 +39,7 @@ export interface MessageProps {
 	content: string;
 	createdAt: Date;
 	sources?: SearchSource[];
+	attachments?: ImageAttachment[];
 }
 
 export interface MessageActionsProps {
@@ -52,6 +61,7 @@ export const Message = memo(function Message({
 	content,
 	createdAt,
 	sources,
+	attachments,
 	onEdit,
 	onRegenerate,
 	isLoading = false,
@@ -60,6 +70,9 @@ export const Message = memo(function Message({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editContent, setEditContent] = useState(content);
 	const [isHovered, setIsHovered] = useState(false);
+	const [selectedImage, setSelectedImage] = useState<ImageAttachment | null>(
+		null,
+	);
 
 	const handleEditClick = useCallback(() => {
 		setEditContent(content);
@@ -150,6 +163,28 @@ export const Message = memo(function Message({
 					</div>
 				) : (
 					<>
+						{/* 画像添付の表示 */}
+						{attachments && attachments.length > 0 && (
+							<div className="flex flex-wrap gap-2 mb-2">
+								{attachments.map((attachment, index) => (
+									<div key={index} className="relative group cursor-pointer">
+										<img
+											src={attachment.data}
+											alt={attachment.fileName}
+											className="max-w-[200px] max-h-[200px] object-cover rounded border"
+											onClick={() => setSelectedImage(attachment)}
+											title={`${attachment.fileName} - クリックして拡大`}
+										/>
+										<div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+											<ImageIcon className="h-3 w-3" />
+											<span className="max-w-[100px] truncate">
+												{attachment.fileName}
+											</span>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 						<div
 							className={cn(
 								"rounded-lg px-4 py-2",
@@ -238,6 +273,33 @@ export const Message = memo(function Message({
 					</>
 				)}
 			</div>
+
+			{/* 画像拡大ダイアログ */}
+			{selectedImage && (
+				<Dialog
+					open={!!selectedImage}
+					onOpenChange={() => setSelectedImage(null)}
+				>
+					<DialogContent className="max-w-[90vw] max-h-[90vh]">
+						<DialogHeader>
+							<DialogTitle>{selectedImage.fileName}</DialogTitle>
+						</DialogHeader>
+						<div className="flex items-center justify-center overflow-auto">
+							<img
+								src={selectedImage.data}
+								alt={selectedImage.fileName}
+								className="max-w-full max-h-[70vh] object-contain"
+							/>
+						</div>
+						{selectedImage.width && selectedImage.height && (
+							<div className="text-sm text-muted-foreground text-center">
+								{selectedImage.width} × {selectedImage.height} ・{" "}
+								{(selectedImage.size / 1024).toFixed(1)} KB
+							</div>
+						)}
+					</DialogContent>
+				</Dialog>
+			)}
 		</div>
 	);
 });

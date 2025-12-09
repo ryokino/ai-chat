@@ -881,6 +881,78 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 
 ---
 
+## Phase 22: マルチモーダル対応 - 画像添付機能
+
+### 22.1 データモデル拡張
+- [x] Prisma schema に `attachments` フィールドを追加
+  - Message モデルに `attachments Json?` を追加
+- [x] 型定義ファイルの作成
+  - `src/types/attachment.ts` - ImageAttachment 型定義
+  - サポート形式: JPEG, PNG, WebP, GIF
+  - 最大サイズ: 5MB
+
+### 22.2 画像バリデーションとアップロード
+- [x] `src/lib/image-validation.ts` を作成
+  - ファイル形式・サイズバリデーション
+  - Base64変換ユーティリティ
+  - 画像寸法取得
+- [x] `src/app/api/upload/image/route.ts` を作成
+  - 画像バリデーションエンドポイント
+
+### 22.3 フロントエンド UI
+- [x] `src/components/chat/MessageInput.tsx` を更新
+  - 画像添付ボタン追加
+  - 画像プレビュー表示
+  - ドラッグ&ドロップ対応
+  - クリップボード貼り付け対応
+  - 複数画像対応
+- [x] `src/components/chat/Message.tsx` を更新
+  - 添付画像の表示
+  - 画像クリックで拡大表示（ダイアログ）
+  - 画像ホバーでファイル名表示
+
+### 22.4 Claude API 統合
+- [x] `src/lib/claude-multimodal.ts` を作成
+  - ImageAttachment → Claude API 形式への変換
+  - マルチモーダルメッセージ変換ユーティリティ
+- [x] `src/app/api/chat/route.ts` を更新
+  - attachments パラメータ対応
+  - 会話履歴のマルチモーダル対応
+  - Claude API へのマルチモーダルメッセージ送信
+
+### 22.5 データベース保存とフロントエンド統合
+- [x] メッセージ保存時に attachments を保存
+- [x] `src/lib/sse-client.ts` を更新
+  - Message 型に attachments を追加
+  - sendChatMessage に attachments パラメータ追加
+- [x] `src/hooks/useChat.ts` を更新
+  - sendMessage に attachments パラメータ追加
+  - 会話履歴読み込み時に attachments を復元
+  - ユーザーメッセージ表示時に attachments を表示
+
+### 22.6 Prisma マイグレーション
+- [ ] Prisma Client を再生成
+  ```bash
+  npx prisma generate
+  ```
+- [ ] データベースにスキーマをプッシュ
+  ```bash
+  npx prisma db push
+  ```
+
+### 22.7 テスト（今後追加予定）
+- [ ] 画像バリデーションのユニットテスト
+- [ ] 画像アップロードAPIのテスト
+- [ ] MessageInput コンポーネントのテスト
+- [ ] Message コンポーネントの画像表示テスト
+- [ ] E2Eテスト - 画像添付→送信→表示フロー
+
+### 22.8 ドキュメント
+- [ ] README.md に画像添付機能の説明を追加
+- [ ] CLAUDE.md の更新（必要に応じて）
+
+---
+
 ## チェックリスト完了後
 
 - [ ] 全機能の最終動作確認

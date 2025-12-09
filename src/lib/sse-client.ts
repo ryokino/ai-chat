@@ -3,6 +3,8 @@
  * ストリーミングレスポンスを処理するためのユーティリティ
  */
 
+import type { ImageAttachment } from "@/types/attachment";
+
 /**
  * 検索ソース情報
  */
@@ -37,6 +39,7 @@ export interface Message {
 	id: string;
 	role: "user" | "assistant";
 	content: string;
+	attachments?: ImageAttachment[];
 	createdAt: string;
 }
 
@@ -159,6 +162,7 @@ export interface AISettings {
  * @param conversationId - 会話ID（オプション、指定しない場合は新規作成）
  * @param options - SSEオプション
  * @param settings - AI設定（オプション）
+ * @param attachments - 画像添付（オプション）
  */
 export async function sendChatMessage(
 	message: string,
@@ -167,6 +171,7 @@ export async function sendChatMessage(
 	conversationId: string | null,
 	options: SSEOptions = {},
 	settings?: AISettings,
+	attachments?: ImageAttachment[],
 ): Promise<void> {
 	const response = await fetch("/api/chat", {
 		method: "POST",
@@ -179,6 +184,7 @@ export async function sendChatMessage(
 			...(userId && { userId }),
 			...(conversationId && { conversationId }),
 			...(settings && { settings }),
+			...(attachments && { attachments }),
 		}),
 	});
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { MessageProps, SearchSource } from "@/components/chat/Message";
 import type { AISettings } from "@/lib/settings";
+import type { ImageAttachment } from "@/types/attachment";
 import {
 	deleteMessage,
 	fetchConversation,
@@ -25,7 +26,7 @@ export interface UseChatReturn {
 	messages: MessageProps[];
 	isLoading: boolean;
 	error: string | null;
-	sendMessage: (content: string) => Promise<void>;
+	sendMessage: (content: string, attachments?: ImageAttachment[]) => Promise<void>;
 	editMessage: (messageId: string, newContent: string) => Promise<void>;
 	regenerateMessage: (messageId: string) => Promise<void>;
 	clearError: () => void;
@@ -75,11 +76,13 @@ export function useChat({
 							id: string;
 							role: string;
 							content: string;
+							attachments?: ImageAttachment[];
 							createdAt: string;
 						}) => ({
 							id: msg.id,
 							sender: msg.role as "user" | "assistant",
 							content: msg.content,
+							attachments: msg.attachments,
 							createdAt: new Date(msg.createdAt),
 						}),
 					);
@@ -105,13 +108,14 @@ export function useChat({
 	}, []);
 
 	const sendMessage = useCallback(
-		async (content: string) => {
-			if (!sessionId || isLoading || !content.trim()) return;
+		async (content: string, attachments?: ImageAttachment[]) => {
+			if (!sessionId || isLoading || (!content.trim() && !attachments?.length)) return;
 
 			const userMessage: MessageProps = {
 				id: nanoid(),
 				sender: "user",
 				content: content.trim(),
+				attachments,
 				createdAt: new Date(),
 			};
 
@@ -214,6 +218,7 @@ export function useChat({
 						},
 					},
 					settings,
+					attachments,
 				);
 			} catch (err) {
 				const errorMessage =
@@ -236,6 +241,7 @@ export function useChat({
 		},
 		[
 			sessionId,
+			userId,
 			conversationId,
 			settings,
 			isLoading,
