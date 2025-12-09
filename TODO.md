@@ -780,49 +780,75 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 ## Phase 20: テスト拡充
 
 ### 20.1 APIルートテスト
-- [ ] `src/app/api/conversations/[id]/route.test.ts` 作成
-  - GET: 特定会話の取得（sessionId/userId両方）
-  - PATCH: タイトル更新
-  - DELETE: 会話削除（メッセージも連動削除）
-- [ ] `src/app/api/conversations/generate-title/route.test.ts` 作成
-  - POST: タイトル自動生成
-  - エラーハンドリング
+- [ ] `src/app/api/conversations/[id]/route.test.ts` 作成 (10テストケース)
+  - GET: sessionIdで会話取得 (status=200, messages含む)
+  - GET: userIdで会話取得 (status=200, messages含む)
+  - GET: sessionId/userId両方なし (status=400)
+  - GET: 存在しない会話 (status=404)
+  - GET: 他人の会話にアクセス (status=404, 認可エラー)
+  - PATCH: タイトル更新成功 (status=200, 更新後タイトル)
+  - PATCH: titleが文字列でない (status=400)
+  - PATCH: sessionId/userId両方なし (status=400)
+  - DELETE: 会話削除成功 (status=200, prisma.message.deleteManyが先)
+  - DELETE: sessionId/userId両方なし (status=400)
+- [ ] `src/app/api/conversations/generate-title/route.test.ts` 作成 (7テストケース)
+  - POST: タイトル生成成功 (status=200, Claude APIで生成)
+  - POST: 既存タイトルあり (status=200, Claude API呼ばれない)
+  - POST: conversationIdなし (status=400)
+  - POST: sessionId/userId両方なし (status=400)
+  - POST: 会話が見つからない (status=404)
+  - POST: メッセージがない (status=400)
+  - POST: 長いタイトルは50文字に切り詰め (titleが50文字以下)
 - [ ] 既存APIテストの更新
-  - `src/app/api/chat/route.test.ts`: userId対応、エラーメッセージ修正
-  - `src/app/api/conversations/route.test.ts`: userId対応
+  - `src/app/api/chat/route.test.ts`: userIdパラメータテスト追加、sessionId/userId両方なしケース追加
+  - `src/app/api/conversations/route.test.ts`: GET/POSTでuserIdテスト追加
 
 ### 20.2 ライブラリテスト
-- [ ] `src/lib/rate-limit.test.ts` 作成
-  - checkRateLimit() 関数
-  - getRateLimitHeaders() 関数
-  - レート制限ストアのクリーンアップ
-- [ ] `src/lib/sse-client.test.ts` 作成
-  - processSSEStream()
-  - sendChatMessage()
-  - fetchConversations()
-  - deleteMessage()
-  - その他全関数
-- [ ] `src/lib/auth.test.ts` 作成（任意）
-  - getBaseURL() 関数のテスト
+- [ ] `src/lib/rate-limit.test.ts` 作成 (6テストケース)
+  - checkRateLimit: 初回リクエスト (success=true, remaining=maxRequests-1)
+  - checkRateLimit: 制限内リクエスト (success=true, remaining減少)
+  - checkRateLimit: 制限超過 (success=false, remaining=0)
+  - checkRateLimit: 異なるidentifier (独立カウント)
+  - checkRateLimit: ウィンドウ経過後 (リセット確認)
+  - getRateLimitHeaders: 正常値 (X-RateLimit-Remaining, X-RateLimit-Reset)
+- [ ] `src/lib/sse-client.test.ts` 作成 (11テストケース)
+  - processSSEStream: contentチャンク受信 (onMessage呼び出し確認)
+  - processSSEStream: conversationInfo受信 (onConversationInfo呼び出し)
+  - processSSEStream: searchSources受信 (onSearchSources呼び出し)
+  - processSSEStream: [DONE]受信 (onComplete呼び出し)
+  - processSSEStream: HTTPエラー (onError呼び出し)
+  - sendChatMessage: 正常リクエスト (fetchが正しいbodyで呼ばれる)
+  - sendChatMessage: settings付き (settingsがbodyに含まれる)
+  - fetchConversations: sessionIdで取得 (クエリパラメータ確認)
+  - fetchConversations: userIdで取得 (userIdが優先される)
+  - fetchConversations: エラーレスポンス (Errorをthrow)
+  - deleteMessage: deleteAfter=true (deleteAfterがbodyに含まれる)
+- [ ] `src/lib/auth.test.ts` 作成（任意 - スキップ）
+  - getBaseURLは内部関数のためテスト困難、優先度低
 
 ### 20.3 フックテスト
-- [ ] `src/hooks/useConversations.test.ts` 作成
-  - createNewConversation
-  - deleteConversation
-  - updateTitle
-  - generateTitle
-  - refetch
-  - 状態管理
+- [ ] `src/hooks/useConversations.test.ts` 作成 (11テストケース)
+  - 初期化時にfetchConversations呼び出し (マウント時API呼び出し)
+  - userIdがある場合はuserIdで呼び出し (userIdを優先)
+  - createNewConversation (呼び出し確認、リスト追加、activeId設定)
+  - createNewConversation: sessionId/userIdなし (nullを返す)
+  - deleteConversation (呼び出し確認、リストから削除)
+  - deleteConversation: アクティブな会話を削除 (別の会話をアクティブに)
+  - updateTitle (呼び出し確認、ローカル状態更新)
+  - generateTitle (呼び出し確認、ローカル状態更新)
+  - refetch (fetchConversations再呼び出し)
+  - エラーハンドリング (error状態設定)
+  - clearError (error=null)
 
 ### 20.4 コンポーネントテスト
-- [ ] `src/components/ConversationProvider.test.tsx` 作成
-  - Context の値が正しく伝播されるか
-  - useConversation フックの動作
-- [ ] サイドバーコンポーネントテスト（任意）
-  - AppSidebar.tsx
-  - ConversationList.tsx
-  - ConversationItem.tsx
-  - NewConversationButton.tsx
+- [ ] `src/components/ConversationProvider.test.tsx` 作成 (4テストケース)
+  - Provider: 子要素をレンダリング (childrenがDOMに存在)
+  - Provider: useSessionの値を伝播 (sessionId, userId, isLoadingが取得可能)
+  - Provider: useConversationsの値を伝播 (conversations, functionsが取得可能)
+  - useConversation: Provider外で使用 (エラーをthrow)
+- [ ] サイドバーコンポーネントテスト（任意 - スキップ）
+  - AppSidebar.tsx, ConversationList.tsx, ConversationItem.tsx, NewConversationButton.tsx
+  - E2Eテストで既にカバー済みのため優先度低
 
 ---
 

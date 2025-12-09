@@ -37,10 +37,10 @@ describe("/api/chat POST", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
-		expect(data.error).toBe("Message and sessionId are required");
+		expect(data.error).toBe("Message and sessionId or userId are required");
 	});
 
-	it("should return 400 when sessionId is missing", async () => {
+	it("should return 400 when sessionId and userId are missing", async () => {
 		const request = new Request("http://localhost:3000/api/chat", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ describe("/api/chat POST", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
-		expect(data.error).toBe("Message and sessionId are required");
+		expect(data.error).toBe("Message and sessionId or userId are required");
 	});
 
 	it("should return 400 when both message and sessionId are missing", async () => {
@@ -65,7 +65,7 @@ describe("/api/chat POST", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
-		expect(data.error).toBe("Message and sessionId are required");
+		expect(data.error).toBe("Message and sessionId or userId are required");
 	});
 
 	it("should create conversation if conversationId is not provided", async () => {
@@ -423,5 +423,57 @@ describe("/api/chat POST", () => {
 
 		expect(response.status).toBe(500);
 		expect(data.error).toBe("Database error");
+	});
+
+	it("should accept userId instead of sessionId", async () => {
+		const { prisma } = await import("@/lib/prisma");
+		const { chatAgent } = await import("@/lib/mastra");
+
+		const mockConversation = {
+			id: "conv-user-1",
+			userId: "user-123",
+			sessionId: null,
+			title: null,
+			messages: [],
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+
+		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(
+			mockConversation,
+		);
+		vi.mocked(prisma.message.create).mockResolvedValue({
+			id: "msg-1",
+			conversationId: "conv-user-1",
+			role: "user",
+			content: "Hello",
+			createdAt: new Date(),
+		});
+
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", payload: { id: "1", text: "Response" } };
+		})();
+
+		vi.mocked(chatAgent.stream).mockResolvedValue({
+			fullStream: mockFullStream,
+		} as any);
+
+		const request = new Request("http://localhost:3000/api/chat", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				message: "Hello",
+				userId: "user-123",
+				conversationId: "conv-user-1",
+			}),
+		});
+
+		const response = await POST(request as any);
+
+		expect(response.status).toBe(200);
+		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
+			where: { id: "conv-user-1" },
+			include: { messages: { orderBy: { createdAt: "asc" } } },
+		});
 	});
 });
