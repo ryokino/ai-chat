@@ -24,6 +24,9 @@ RUN pnpm install --frozen-lockfile
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
@@ -37,7 +40,9 @@ COPY . .
 RUN pnpm exec prisma generate
 
 # Build the application
+# Note: DATABASE_URL is needed at build time for Prisma but actual connection happens at runtime
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="mongodb://placeholder:27017/placeholder"
 RUN pnpm build
 
 # =========================================
@@ -48,6 +53,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Install OpenSSL for Prisma runtime
+RUN apk add --no-cache openssl
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
@@ -60,13 +68,12 @@ COPY --from=builder /app/public ./public
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Copy standalone output
+# Copy standalone output (includes node_modules with Prisma)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma files for runtime
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy Prisma schema for runtime (needed for some Prisma operations)
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 # Switch to non-root user
 USER nextjs

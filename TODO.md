@@ -459,12 +459,12 @@
 ## Phase 12: Raspberry Pi デプロイ
 
 ### 12.1 Raspberry Pi セットアップ
-- [ ] ghcr.io への認証設定
+- [x] ghcr.io への認証設定 
   ```bash
   # GitHub Personal Access Token (read:packages 権限) を作成
   echo $GITHUB_PAT | docker login ghcr.io -u USERNAME --password-stdin
   ```
-- [ ] docker-compose.yml と .env ファイルを配置
+- [x] docker-compose.yml と .env ファイルを配置
   ```bash
   # docker-compose.raspi.yml を docker-compose.yml にリネームしてコピー
   # .env ファイルに DATABASE_URL と ANTHROPIC_API_KEY を設定
