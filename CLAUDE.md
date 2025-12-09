@@ -398,6 +398,51 @@ TAVILY_API_KEY=your_tavily_api_key
 - **wrapperコンポーネントを作成する**: UIをカスタマイズする場合は、`src/components/`配下にwrapperコンポーネントを作成して使用する
 - **テストを書く**: UIコンポーネントには必ずテストを追加する
 
+### 便利なコマンド (Makefile)
+プロジェクトルートに `Makefile` があり、よく使うコマンドをまとめています。
+
+#### 初期化
+```bash
+make init         # プロジェクト初期化 (install + db-setup)
+make install      # 依存関係をインストール
+```
+
+#### 開発
+```bash
+make dev          # 開発サーバーを起動
+make build        # 本番用にビルド
+make test         # テストを実行
+make test-watch   # テストをウォッチモードで実行
+make lint         # Linting実行
+make lint-fix     # Lintエラーを自動修正
+```
+
+#### データベース
+```bash
+make db-generate  # Prisma Clientを生成
+make db-push      # データベースにスキーマをプッシュ
+make db-setup     # DB初期化 (generate + push)
+```
+
+#### Docker/デプロイ
+```bash
+make docker-build # ARM64 Docker imageをビルド
+make docker-push  # Docker imageをghcr.ioにプッシュ
+make deploy       # ビルド + プッシュ (自動デプロイ)
+make docker-run   # Dockerコンテナを起動 (Raspberry Pi)
+```
+
+#### その他
+```bash
+make clean        # ビルド成果物を削除
+make help         # コマンド一覧を表示
+```
+
+**推奨される使い方**:
+- 新規セットアップ: `make init` → `make dev`
+- デプロイ: `make deploy` (GitHub Actionsが自動でビルドするため、通常は不要)
+- 日常的な開発: `make dev`, `make test`, `make lint`
+
 ---
 
 ## 注意事項

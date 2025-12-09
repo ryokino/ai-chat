@@ -730,7 +730,7 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 
 ### 19.7 テスト
 - [x] ユニットテスト: AuthButton, UserMenu (11/11 passed)
-- [ ] Playwright E2Eテスト: Google OAuth フロー
+- [x] E2Eテスト: Google OAuth フロー（chrome-devtools-mcp）
 - [ ] Playwright E2Eテスト: 認証後のデバイス間同期確認
 
 ### 19.8 環境変数・設定ファイル更新
@@ -742,14 +742,14 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 ### 19.9 Raspberry Pi デプロイ準備（@ryokino 手動作業）
 > **⚠️ デプロイ前に以下の作業が必要です！**
 
-- [ ] **@ryokino**: Raspberry Pi の `/path/to/ai-chat/.env` ファイルに以下を追加:
+- [x] **@ryokino**: Raspberry Pi の `/path/to/ai-chat/.env` ファイルに以下を追加:
   ```env
   BETTER_AUTH_SECRET=（開発環境と同じ値）
   GOOGLE_CLIENT_ID=（開発環境と同じ値）
   GOOGLE_CLIENT_SECRET=（開発環境と同じ値）
   TAVILY_API_KEY=（開発環境と同じ値）
   ```
-- [ ] **@ryokino**: Raspberry Pi で docker compose を再起動:
+- [x] **@ryokino**: Raspberry Pi で docker compose を再起動:
   ```bash
   cd /path/to/ai-chat
   docker compose down

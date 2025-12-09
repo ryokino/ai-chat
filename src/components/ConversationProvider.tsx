@@ -9,21 +9,23 @@ import {
 
 interface ConversationContextType extends UseConversationsReturn {
 	sessionId: string;
+	userId: string | null;
 	isSessionLoading: boolean;
 }
 
 const ConversationContext = createContext<ConversationContextType | null>(null);
 
 export function ConversationProvider({ children }: { children: ReactNode }) {
-	const { sessionId, isLoading: isSessionLoading } = useSession();
+	const { sessionId, userId, isLoading: isSessionLoading } = useSession();
 
-	const conversationsState = useConversations(sessionId);
+	const conversationsState = useConversations(sessionId, userId);
 
 	return (
 		<ConversationContext.Provider
 			value={{
 				...conversationsState,
 				sessionId,
+				userId,
 				isSessionLoading,
 			}}
 		>

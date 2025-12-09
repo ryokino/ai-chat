@@ -5,23 +5,29 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/conversations
- * セッションIDから会話一覧を取得
+ * セッションIDまたはuserIdから会話一覧を取得
  */
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const sessionId = searchParams.get("sessionId");
+		const userId = searchParams.get("userId");
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
-		// セッションIDに紐づく全ての会話を取得
+		// userIdまたはsessionIdに紐づく全ての会話を取得
+		const whereClause = userId ? { userId } : { sessionId };
+
 		const conversations = await prisma.conversation.findMany({
-			where: { sessionId },
+			where: whereClause,
 			include: {
 				_count: {
 					select: { messages: true },
@@ -35,6 +41,7 @@ export async function GET(request: NextRequest) {
 				conversations: conversations.map((conv) => ({
 					id: conv.id,
 					sessionId: conv.sessionId,
+					userId: conv.userId,
 					title: conv.title,
 					messageCount: conv._count.messages,
 					createdAt: conv.createdAt,
@@ -67,18 +74,22 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
-		const { sessionId } = body;
+		const { sessionId, userId } = body;
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
-		// 新しい会話を作成
+		// 新しい会話を作成（userIdまたはsessionIdを使用）
+		const createData = userId ? { userId } : { sessionId };
 		const conversation = await prisma.conversation.create({
-			data: { sessionId },
+			data: createData,
 		});
 
 		return new Response(
@@ -86,6 +97,7 @@ export async function POST(request: NextRequest) {
 				conversation: {
 					id: conversation.id,
 					sessionId: conversation.sessionId,
+					userId: conversation.userId,
 					createdAt: conversation.createdAt,
 					updatedAt: conversation.updatedAt,
 				},
