@@ -2,10 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as SessionProvider from "@/components/SessionProvider";
 import * as useConversationsHook from "@/hooks/useConversations";
-import {
-	ConversationProvider,
-	useConversation,
-} from "./ConversationProvider";
+import { ConversationProvider, useConversation } from "./ConversationProvider";
 
 // SessionProviderのモック
 vi.mock("@/components/SessionProvider", () => ({

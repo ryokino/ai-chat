@@ -4,8 +4,8 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { ConversationProvider } from "@/components/ConversationProvider";
-import { SessionProvider } from "@/components/SessionProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SessionProvider } from "@/components/SessionProvider";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",

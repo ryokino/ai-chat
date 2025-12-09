@@ -9,11 +9,11 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createImageAttachment } from "@/lib/image-validation";
 import type { ImageAttachment } from "@/types/attachment";
-import { toast } from "sonner";
 
 interface MessageInputProps {
 	onSend: (message: string, attachments?: ImageAttachment[]) => void;
@@ -37,7 +37,10 @@ export const MessageInput = memo(function MessageInput({
 			const trimmedMessage = message.trim();
 			// 画像のみの送信も許可
 			if ((trimmedMessage || attachments.length > 0) && !disabled) {
-				onSend(trimmedMessage, attachments.length > 0 ? attachments : undefined);
+				onSend(
+					trimmedMessage,
+					attachments.length > 0 ? attachments : undefined,
+				);
 				setMessage("");
 				setAttachments([]);
 			}

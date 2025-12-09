@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorBoundary } from "../ErrorBoundary";
 
 // エラーをスローするコンポーネント
@@ -40,9 +40,13 @@ describe("ErrorBoundary", () => {
 
 		expect(screen.getByText("エラーが発生しました")).toBeInTheDocument();
 		expect(
-			screen.getByText("予期しないエラーが発生しました。ページを再読み込みしてください。"),
+			screen.getByText(
+				"予期しないエラーが発生しました。ページを再読み込みしてください。",
+			),
 		).toBeInTheDocument();
-		expect(screen.getByRole("button", { name: "ページを再読み込み" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "ページを再読み込み" }),
+		).toBeInTheDocument();
 	});
 
 	it("カスタムフォールバックUIが提供された場合、それを表示する", () => {
@@ -72,7 +76,9 @@ describe("ErrorBoundary", () => {
 			</ErrorBoundary>,
 		);
 
-		const reloadButton = screen.getByRole("button", { name: "ページを再読み込み" });
+		const reloadButton = screen.getByRole("button", {
+			name: "ページを再読み込み",
+		});
 		await user.click(reloadButton);
 
 		expect(reloadMock).toHaveBeenCalledOnce();

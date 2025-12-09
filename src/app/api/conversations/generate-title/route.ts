@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
+import { getAuthenticatedUserId } from "@/lib/auth";
 import { anthropic, CLAUDE_MODEL } from "@/lib/claude";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUserId } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 

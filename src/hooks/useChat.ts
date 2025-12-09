@@ -3,13 +3,13 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { MessageProps, SearchSource } from "@/components/chat/Message";
 import type { AISettings } from "@/lib/settings";
-import type { ImageAttachment } from "@/types/attachment";
 import {
 	deleteMessage,
 	fetchConversation,
 	generateConversationTitle,
 	sendChatMessage,
 } from "@/lib/sse-client";
+import type { ImageAttachment } from "@/types/attachment";
 
 export interface UseChatOptions {
 	sessionId: string;
@@ -26,7 +26,10 @@ export interface UseChatReturn {
 	messages: MessageProps[];
 	isLoading: boolean;
 	error: string | null;
-	sendMessage: (content: string, attachments?: ImageAttachment[]) => Promise<void>;
+	sendMessage: (
+		content: string,
+		attachments?: ImageAttachment[],
+	) => Promise<void>;
 	editMessage: (messageId: string, newContent: string) => Promise<void>;
 	regenerateMessage: (messageId: string) => Promise<void>;
 	clearError: () => void;
@@ -109,7 +112,8 @@ export function useChat({
 
 	const sendMessage = useCallback(
 		async (content: string, attachments?: ImageAttachment[]) => {
-			if (!sessionId || isLoading || (!content.trim() && !attachments?.length)) return;
+			if (!sessionId || isLoading || (!content.trim() && !attachments?.length))
+				return;
 
 			const userMessage: MessageProps = {
 				id: nanoid(),

@@ -490,7 +490,9 @@ describe("/api/chat POST", () => {
 		const { getAuthenticatedUserId } = await import("@/lib/auth");
 
 		// Mock authentication to return different userId
-		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-456");
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue(
+			"authenticated-user-456",
+		);
 
 		const request = new Request("http://localhost:3000/api/chat", {
 			method: "POST",

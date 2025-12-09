@@ -200,7 +200,9 @@ describe("/api/conversations GET", () => {
 		const { getAuthenticatedUserId } = await import("@/lib/auth");
 
 		// Mock authentication to return different userId
-		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-999");
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue(
+			"authenticated-user-999",
+		);
 
 		const request = new Request(
 			"http://localhost:3000/api/conversations?userId=spoofed-user-123",
@@ -422,7 +424,9 @@ describe("/api/conversations POST", () => {
 		const { getAuthenticatedUserId } = await import("@/lib/auth");
 
 		// Mock authentication to return different userId
-		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-888");
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue(
+			"authenticated-user-888",
+		);
 
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "POST",

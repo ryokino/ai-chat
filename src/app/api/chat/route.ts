@@ -5,6 +5,8 @@
  */
 
 import type { NextRequest } from "next/server";
+import { getAuthenticatedUserId } from "@/lib/auth";
+import { convertToClaudeContent } from "@/lib/claude-multimodal";
 import { chatAgent } from "@/lib/mastra";
 import { prisma } from "@/lib/prisma";
 import {
@@ -12,9 +14,7 @@ import {
 	checkRateLimit,
 	getRateLimitHeaders,
 } from "@/lib/rate-limit";
-import { getAuthenticatedUserId } from "@/lib/auth";
 import type { ImageAttachment } from "@/types/attachment";
-import { convertToClaudeContent } from "@/lib/claude-multimodal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

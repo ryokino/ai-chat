@@ -4,11 +4,11 @@
  */
 
 import {
-	MAX_FILE_SIZE,
-	SUPPORTED_IMAGE_TYPES,
+	type ImageAttachment,
 	isImageFile,
 	isValidFileSize,
-	type ImageAttachment,
+	MAX_FILE_SIZE,
+	SUPPORTED_IMAGE_TYPES,
 } from "@/types/attachment";
 
 /**
