@@ -1,6 +1,8 @@
 "use client";
 
 import { Bot } from "lucide-react";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { UserMenu } from "@/components/auth/UserMenu";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -13,6 +15,7 @@ import {
 	SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import type { AISettings } from "@/lib/settings";
 import type { ConversationSummary } from "@/lib/sse-client";
 import { ConversationList } from "./ConversationList";
@@ -65,37 +68,41 @@ export function AppSidebar({
 				<SidebarGroup className="flex-1">
 					<SidebarGroupLabel>会話履歴</SidebarGroupLabel>
 					<SidebarGroupContent>
-						{isLoading ? (
-							<div className="space-y-2 px-2">
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-8 w-full" />
-							</div>
-						) : (
-							<ConversationList
-								conversations={conversations}
-								activeId={activeConversationId}
-								onSelect={onSelectConversation}
-								onDelete={onDeleteConversation}
-								onUpdateTitle={onUpdateTitle}
-							/>
-						)}
+						<ConversationList
+							conversations={conversations}
+							activeId={activeConversationId}
+							onSelect={onSelectConversation}
+							onDelete={onDeleteConversation}
+							onUpdateTitle={onUpdateTitle}
+							isLoading={isLoading}
+						/>
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
 
 			<SidebarFooter className="border-t">
-				<div className="flex items-center justify-between px-2 py-2">
-					<span className="text-xs text-muted-foreground">
-						Powered by Claude
-					</span>
-					<div className="flex items-center gap-1">
-						<SettingsDialog
-							settings={settings}
-							onUpdate={onUpdateSettings}
-							onReset={onResetSettings}
-						/>
-						<ThemeToggle />
+				<div className="space-y-2 px-2 py-2">
+					{/* 認証UI */}
+					<div className="flex flex-col gap-2">
+						<AuthButton />
+						<UserMenu />
+					</div>
+
+					<Separator />
+
+					{/* 設定とテーマ切り替え */}
+					<div className="flex items-center justify-between">
+						<span className="text-xs text-muted-foreground">
+							Powered by Claude
+						</span>
+						<div className="flex items-center gap-1">
+							<SettingsDialog
+								settings={settings}
+								onUpdate={onUpdateSettings}
+								onReset={onResetSettings}
+							/>
+							<ThemeToggle />
+						</div>
 					</div>
 				</div>
 			</SidebarFooter>
