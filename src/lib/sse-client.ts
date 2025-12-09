@@ -3,6 +3,15 @@
  * ストリーミングレスポンスを処理するためのユーティリティ
  */
 
+/**
+ * 検索ソース情報
+ */
+export interface SearchSource {
+	title: string;
+	url: string;
+	content?: string;
+}
+
 export interface SSEOptions {
 	onMessage?: (data: string) => void;
 	onError?: (error: Error) => void;
@@ -11,6 +20,7 @@ export interface SSEOptions {
 		conversationId: string;
 		isNewConversation: boolean;
 	}) => void;
+	onSearchSources?: (sources: SearchSource[]) => void;
 }
 
 export interface ConversationSummary {
@@ -38,7 +48,13 @@ export async function processSSEStream(
 	response: Response,
 	options: SSEOptions = {},
 ): Promise<void> {
-	const { onMessage, onError, onComplete, onConversationInfo } = options;
+	const {
+		onMessage,
+		onError,
+		onComplete,
+		onConversationInfo,
+		onSearchSources,
+	} = options;
 
 	if (!response.ok) {
 		const error = new Error(`HTTP error! status: ${response.status}`);
@@ -94,6 +110,12 @@ export async function processSSEStream(
 								typeof parsed.isNewConversation === "boolean"
 							) {
 								onConversationInfo?.(parsed);
+							} else if (
+								parsed.searchSources &&
+								Array.isArray(parsed.searchSources)
+							) {
+								// 検索ソース情報を処理
+								onSearchSources?.(parsed.searchSources);
 							} else if (parsed.content !== undefined) {
 								// 通常のメッセージコンテンツ
 								onMessage?.(data);

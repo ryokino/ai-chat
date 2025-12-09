@@ -163,14 +163,44 @@ export async function POST(request: NextRequest) {
 		const encoder = new TextEncoder();
 		let fullResponse = "";
 
+		// Interface for search source information
+		interface SearchSource {
+			title: string;
+			url: string;
+			content?: string;
+		}
+
 		const readableStream = new ReadableStream({
 			async start(controller) {
 				try {
-					// Stream the response chunks
-					for await (const chunk of stream.textStream) {
-						fullResponse += chunk;
-						const data = JSON.stringify({ content: chunk });
-						controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+					// Track search sources from tool calls
+					const searchSources: SearchSource[] = [];
+
+					// Use fullStream to capture both text and tool calls
+					for await (const chunk of stream.fullStream) {
+						if (chunk.type === "text-delta") {
+							fullResponse += chunk.textDelta;
+							const data = JSON.stringify({ content: chunk.textDelta });
+							controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+						} else if (chunk.type === "tool-result") {
+							// Capture search results from tool calls
+							const result = chunk.result as {
+								results?: Array<{
+									title: string;
+									url: string;
+									content?: string;
+								}>;
+							};
+							if (result?.results && Array.isArray(result.results)) {
+								for (const item of result.results) {
+									searchSources.push({
+										title: item.title || "Unknown",
+										url: item.url,
+										content: item.content?.slice(0, 200),
+									});
+								}
+							}
+						}
 					}
 
 					// Save assistant message to database
@@ -181,6 +211,14 @@ export async function POST(request: NextRequest) {
 							content: fullResponse,
 						},
 					});
+
+					// Send search sources if any
+					if (searchSources.length > 0) {
+						const sourcesData = JSON.stringify({
+							searchSources: searchSources.slice(0, 5), // Limit to 5 sources
+						});
+						controller.enqueue(encoder.encode(`data: ${sourcesData}\n\n`));
+					}
 
 					// Send conversation info (useful when new conversation is created)
 					const infoData = JSON.stringify({

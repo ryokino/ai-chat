@@ -1,6 +1,13 @@
 "use client";
 
-import { Bot, Pencil, RefreshCw, User } from "lucide-react";
+import {
+	Bot,
+	ExternalLink,
+	Globe,
+	Pencil,
+	RefreshCw,
+	User,
+} from "lucide-react";
 import { memo, useCallback, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,11 +16,21 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+/**
+ * 検索ソース情報
+ */
+export interface SearchSource {
+	title: string;
+	url: string;
+	content?: string;
+}
+
 export interface MessageProps {
 	id: string;
 	sender: "user" | "assistant";
 	content: string;
 	createdAt: Date;
+	sources?: SearchSource[];
 }
 
 export interface MessageActionsProps {
@@ -34,6 +51,7 @@ export const Message = memo(function Message({
 	sender,
 	content,
 	createdAt,
+	sources,
 	onEdit,
 	onRegenerate,
 	isLoading = false,
@@ -150,6 +168,30 @@ export const Message = memo(function Message({
 								</div>
 							)}
 						</div>
+						{/* 検索ソースの表示（アシスタントメッセージのみ） */}
+						{!isUser && sources && sources.length > 0 && (
+							<div className="mt-2 w-full">
+								<div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+									<Globe className="h-3 w-3" />
+									<span>参考ソース</span>
+								</div>
+								<div className="flex flex-wrap gap-2">
+									{sources.map((source, index) => (
+										<a
+											key={`${source.url}-${index}`}
+											href={source.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-background border hover:bg-accent transition-colors max-w-[200px]"
+											title={source.title}
+										>
+											<ExternalLink className="h-3 w-3 shrink-0" />
+											<span className="truncate">{source.title}</span>
+										</a>
+									))}
+								</div>
+							</div>
+						)}
 						<div
 							className={cn(
 								"flex items-center gap-2",

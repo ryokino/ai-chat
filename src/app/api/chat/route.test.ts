@@ -90,14 +90,14 @@ describe("/api/chat POST", () => {
 			createdAt: new Date(),
 		});
 
-		// Mock streaming response
-		const mockTextStream = (async function* () {
-			yield "Hello";
-			yield " there!";
+		// Mock streaming response with fullStream
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", textDelta: "Hello" };
+			yield { type: "text-delta", textDelta: " there!" };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
-			textStream: mockTextStream,
+			fullStream: mockFullStream,
 		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {
@@ -151,12 +151,12 @@ describe("/api/chat POST", () => {
 			createdAt: new Date(),
 		});
 
-		const mockTextStream = (async function* () {
-			yield "Response";
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", textDelta: "Response" };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
-			textStream: mockTextStream,
+			fullStream: mockFullStream,
 		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {
@@ -203,12 +203,12 @@ describe("/api/chat POST", () => {
 			createdAt: new Date(),
 		});
 
-		const mockTextStream = (async function* () {
-			yield "Response";
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", textDelta: "Response" };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
-			textStream: mockTextStream,
+			fullStream: mockFullStream,
 		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {
@@ -256,14 +256,14 @@ describe("/api/chat POST", () => {
 			createdAt: new Date(),
 		});
 
-		const mockTextStream = (async function* () {
-			yield "Hello";
-			yield " ";
-			yield "World";
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", textDelta: "Hello" };
+			yield { type: "text-delta", textDelta: " " };
+			yield { type: "text-delta", textDelta: "World" };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
-			textStream: mockTextStream,
+			fullStream: mockFullStream,
 		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {
@@ -335,14 +335,14 @@ describe("/api/chat POST", () => {
 			};
 		});
 
-		const mockTextStream = (async function* () {
-			yield "Full";
-			yield " ";
-			yield "Response";
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", textDelta: "Full" };
+			yield { type: "text-delta", textDelta: " " };
+			yield { type: "text-delta", textDelta: "Response" };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
-			textStream: mockTextStream,
+			fullStream: mockFullStream,
 		} as any);
 
 		const request = new Request("http://localhost:3000/api/chat", {

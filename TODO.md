@@ -629,11 +629,24 @@
 
 ---
 
-## Phase 16: Web検索機能（将来実装）
+## Phase 16: Web検索機能
 
-- [ ] 検索API選定（Tavily / Perplexity / Brave Search）
-- [ ] ツール呼び出し（Function Calling）実装
-- [ ] UI統合
+- [x] 検索API選定（Tavily）
+  - `@tavily/core` SDKを使用
+  - 環境変数 `TAVILY_API_KEY` で設定
+- [x] ツール呼び出し（Function Calling）実装
+  - `src/lib/tools/webSearchTool.ts` - Mastra用ツール定義
+  - `webSearchTool` - 一般的なWeb検索
+  - `medicalSearchTool` - 医療専門検索（信頼できる医療ドメインを優先）
+  - `src/lib/mastra.ts` - エージェントにツール統合
+- [x] UI統合
+  - `src/components/chat/Message.tsx` - 検索ソース表示（参考ソースとしてリンク表示）
+  - `src/lib/sse-client.ts` - 検索ソースの受信処理
+  - `src/hooks/useChat.ts` - ソース情報のメッセージへの付与
+  - `src/app/api/chat/route.ts` - fullStreamでツール結果をキャプチャ
+- [x] テスト作成
+  - `src/lib/tools/webSearchTool.test.ts` - ツールのユニットテスト
+  - `src/app/api/chat/route.test.ts` - fullStream対応に更新
 
 ---
 

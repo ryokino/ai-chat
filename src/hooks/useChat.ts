@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { MessageProps } from "@/components/chat/Message";
+import type { MessageProps, SearchSource } from "@/components/chat/Message";
 import type { AISettings } from "@/lib/settings";
 import {
 	deleteMessage,
@@ -114,6 +114,7 @@ export function useChat({
 
 			const assistantMessageId = nanoid();
 			let assistantContent = "";
+			let assistantSources: SearchSource[] = [];
 
 			try {
 				// アシスタントメッセージの枠を追加
@@ -153,6 +154,17 @@ export function useChat({
 							} catch (parseError) {
 								console.error("Error parsing SSE data:", parseError);
 							}
+						},
+						onSearchSources: (sources: SearchSource[]) => {
+							// 検索ソースを受信したらメッセージに追加
+							assistantSources = sources;
+							setMessages((prev) =>
+								prev.map((msg) =>
+									msg.id === assistantMessageId
+										? { ...msg, sources: assistantSources }
+										: msg,
+								),
+							);
 						},
 						onConversationInfo: async (info) => {
 							// 新しい会話が作成された場合、コールバックを呼ぶ
