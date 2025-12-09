@@ -16,7 +16,7 @@ describe("/api/conversations GET", () => {
 		vi.clearAllMocks();
 	});
 
-	it("should return 400 when sessionId is missing", async () => {
+	it("should return 400 when sessionId and userId are missing", async () => {
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "GET",
 		});
@@ -25,7 +25,7 @@ describe("/api/conversations GET", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
-		expect(data.error).toBe("sessionId is required");
+		expect(data.error).toBe("sessionId or userId is required");
 	});
 
 	it("should return empty conversations when none exist", async () => {
@@ -125,6 +125,63 @@ describe("/api/conversations GET", () => {
 		expect(response.status).toBe(500);
 		expect(data.error).toBe("Database connection failed");
 	});
+
+	it("should return conversations with userId", async () => {
+		const { prisma } = await import("@/lib/prisma");
+
+		const mockConversations = [
+			{
+				id: "conv-user-1",
+				userId: "user-123",
+				sessionId: null,
+				title: "User conversation",
+				createdAt: new Date("2024-01-01T10:00:00Z"),
+				updatedAt: new Date("2024-01-01T10:05:00Z"),
+				_count: { messages: 3 },
+			},
+		];
+
+		vi.mocked(prisma.conversation.findMany).mockResolvedValue(
+			mockConversations as any,
+		);
+
+		const request = new Request(
+			"http://localhost:3000/api/conversations?userId=user-123",
+			{ method: "GET" },
+		);
+
+		const response = await GET(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(data.conversations).toHaveLength(1);
+		expect(data.conversations[0].userId).toBe("user-123");
+		expect(prisma.conversation.findMany).toHaveBeenCalledWith({
+			where: { userId: "user-123" },
+			include: { _count: { select: { messages: true } } },
+			orderBy: { updatedAt: "desc" },
+		});
+	});
+
+	it("should prioritize userId over sessionId when both are provided", async () => {
+		const { prisma } = await import("@/lib/prisma");
+
+		vi.mocked(prisma.conversation.findMany).mockResolvedValue([]);
+
+		const request = new Request(
+			"http://localhost:3000/api/conversations?sessionId=test-session&userId=user-123",
+			{ method: "GET" },
+		);
+
+		await GET(request as any);
+
+		// userIdが優先されることを確認
+		expect(prisma.conversation.findMany).toHaveBeenCalledWith({
+			where: { userId: "user-123" },
+			include: { _count: { select: { messages: true } } },
+			orderBy: { updatedAt: "desc" },
+		});
+	});
 });
 
 describe("/api/conversations POST", () => {
@@ -132,7 +189,7 @@ describe("/api/conversations POST", () => {
 		vi.clearAllMocks();
 	});
 
-	it("should return 400 when sessionId is missing", async () => {
+	it("should return 400 when sessionId and userId are missing", async () => {
 		const request = new Request("http://localhost:3000/api/conversations", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -143,7 +200,7 @@ describe("/api/conversations POST", () => {
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
-		expect(data.error).toBe("sessionId is required");
+		expect(data.error).toBe("sessionId or userId is required");
 	});
 
 	it("should create a new conversation and return 201", async () => {
@@ -253,5 +310,70 @@ describe("/api/conversations POST", () => {
 		expect(data.conversation).toHaveProperty("sessionId");
 		expect(data.conversation).toHaveProperty("createdAt");
 		expect(data.conversation).toHaveProperty("updatedAt");
+	});
+
+	it("should create conversation with userId", async () => {
+		const { prisma } = await import("@/lib/prisma");
+
+		const mockConversation = {
+			id: "conv-user-1",
+			userId: "user-456",
+			sessionId: null,
+			title: null,
+			createdAt: new Date("2024-01-01T10:00:00Z"),
+			updatedAt: new Date("2024-01-01T10:00:00Z"),
+		};
+
+		vi.mocked(prisma.conversation.create).mockResolvedValue(
+			mockConversation as any,
+		);
+
+		const request = new Request("http://localhost:3000/api/conversations", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ userId: "user-456" }),
+		});
+
+		const response = await POST(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(201);
+		expect(data.conversation.userId).toBe("user-456");
+		expect(prisma.conversation.create).toHaveBeenCalledWith({
+			data: { userId: "user-456" },
+		});
+	});
+
+	it("should prioritize userId over sessionId when both are provided in POST", async () => {
+		const { prisma } = await import("@/lib/prisma");
+
+		const mockConversation = {
+			id: "conv-priority",
+			userId: "user-789",
+			sessionId: null,
+			title: null,
+			createdAt: new Date("2024-01-01T10:00:00Z"),
+			updatedAt: new Date("2024-01-01T10:00:00Z"),
+		};
+
+		vi.mocked(prisma.conversation.create).mockResolvedValue(
+			mockConversation as any,
+		);
+
+		const request = new Request("http://localhost:3000/api/conversations", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				sessionId: "session-ignore",
+				userId: "user-789",
+			}),
+		});
+
+		await POST(request as any);
+
+		// userIdが優先されることを確認
+		expect(prisma.conversation.create).toHaveBeenCalledWith({
+			data: { userId: "user-789" },
+		});
 	});
 });
