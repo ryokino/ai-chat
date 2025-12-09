@@ -78,6 +78,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 					id: msg.id,
 					role: msg.role,
 					content: msg.content,
+					attachments: msg.attachments,
 					createdAt: msg.createdAt,
 				})),
 			}),

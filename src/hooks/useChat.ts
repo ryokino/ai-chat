@@ -58,7 +58,12 @@ export function useChat({
 
 	// 会話履歴を取得
 	useEffect(() => {
-		if (!sessionId || !conversationId) {
+		// ストリーミング中はメッセージをクリアしない
+		if (isLoading) {
+			return;
+		}
+
+		if ((!sessionId && !userId) || !conversationId) {
 			setMessages([]);
 			setIsInitialLoading(false);
 			return;
@@ -100,7 +105,7 @@ export function useChat({
 		};
 
 		loadHistory();
-	}, [sessionId, userId, conversationId]);
+	}, [sessionId, userId, conversationId, isLoading]);
 
 	const clearMessages = useCallback(() => {
 		setMessages([]);
@@ -112,7 +117,7 @@ export function useChat({
 
 	const sendMessage = useCallback(
 		async (content: string, attachments?: ImageAttachment[]) => {
-			if (!sessionId || isLoading || (!content.trim() && !attachments?.length))
+			if ((!sessionId && !userId) || isLoading || (!content.trim() && !attachments?.length))
 				return;
 
 			const userMessage: MessageProps = {

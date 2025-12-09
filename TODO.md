@@ -1026,6 +1026,27 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 
 ---
 
+## Phase 25: メッセージ表示のRace Condition修正
+
+### 25.1 問題
+- AIからの応答がすぐにチャットリストに消えてしまう
+- 会話を選択しても再開できない
+
+### 25.2 原因
+- `useChat.ts`のuseEffectで`conversationId`変更時に`setMessages([])`が実行される
+- ストリーミング中でもメッセージがクリアされてしまう
+- `/api/conversations/[id]`のレスポンスに`attachments`フィールドが欠落
+
+### 25.3 修正内容
+- [x] `src/hooks/useChat.ts` - useEffectにisLoadingチェックを追加（60-103行目）
+- [x] `src/app/api/conversations/[id]/route.ts` - attachmentsフィールドを追加（77-82行目）
+
+### 25.4 テスト
+- [ ] 新規会話でメッセージ送信→応答完了まで表示確認
+- [ ] 会話リストから既存会話を選択→メッセージ表示確認
+
+---
+
 ## チェックリスト完了後
 
 - [ ] 全機能の最終動作確認
