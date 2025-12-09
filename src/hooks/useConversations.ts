@@ -32,17 +32,21 @@ export interface UseConversationsReturn {
 
 /**
  * 会話管理フック
- * セッションIDに紐づく会話一覧を管理し、CRUD操作を提供
+ * セッションIDまたはuserIdに紐づく会話一覧を管理し、CRUD操作を提供
  * @param sessionId - ユーザーのセッションID
+ * @param userId - 認証済みユーザーのID（オプション）
  * @returns 会話管理に必要な状態と関数
  * @example
  * const {
  *   conversations,
  *   createNewConversation,
  *   deleteConversation,
- * } = useConversations(sessionId);
+ * } = useConversations(sessionId, userId);
  */
-export function useConversations(sessionId: string): UseConversationsReturn {
+export function useConversations(
+	sessionId: string,
+	userId?: string | null,
+): UseConversationsReturn {
 	const [conversations, setConversations] = useState<ConversationSummary[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -51,12 +55,12 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 	>(null);
 
 	const refetch = useCallback(async () => {
-		if (!sessionId) return;
+		if (!sessionId && !userId) return;
 
 		try {
 			setIsLoading(true);
 			setError(null);
-			const data = await fetchConversations(sessionId);
+			const data = await fetchConversations(sessionId, userId ?? null);
 			setConversations(data.conversations);
 		} catch (err) {
 			setError(
@@ -65,7 +69,7 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [sessionId]);
+	}, [sessionId, userId]);
 
 	// 初回読み込み
 	useEffect(() => {
@@ -75,11 +79,11 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 	const createNewConversation = useCallback(async (): Promise<
 		string | null
 	> => {
-		if (!sessionId) return null;
+		if (!sessionId && !userId) return null;
 
 		try {
 			setError(null);
-			const data = await createConversation(sessionId);
+			const data = await createConversation(sessionId, userId ?? null);
 			const newConversation = data.conversation;
 
 			setConversations((prev) => [newConversation, ...prev]);
@@ -92,15 +96,15 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 			);
 			return null;
 		}
-	}, [sessionId]);
+	}, [sessionId, userId]);
 
 	const deleteConversation = useCallback(
 		async (id: string) => {
-			if (!sessionId) return;
+			if (!sessionId && !userId) return;
 
 			try {
 				setError(null);
-				await deleteConversationAPI(id, sessionId);
+				await deleteConversationAPI(id, sessionId, userId ?? null);
 
 				setConversations((prev) => prev.filter((c) => c.id !== id));
 
@@ -118,16 +122,16 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 				throw err;
 			}
 		},
-		[sessionId, activeConversationId, conversations],
+		[sessionId, userId, activeConversationId, conversations],
 	);
 
 	const updateTitle = useCallback(
 		async (id: string, title: string) => {
-			if (!sessionId) return;
+			if (!sessionId && !userId) return;
 
 			try {
 				setError(null);
-				const data = await updateTitleAPI(id, sessionId, title);
+				const data = await updateTitleAPI(id, sessionId, userId ?? null, title);
 
 				setConversations((prev) =>
 					prev.map((c) =>
@@ -139,16 +143,16 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 				throw err;
 			}
 		},
-		[sessionId],
+		[sessionId, userId],
 	);
 
 	const generateTitle = useCallback(
 		async (id: string) => {
-			if (!sessionId) return;
+			if (!sessionId && !userId) return;
 
 			try {
 				setError(null);
-				const data = await generateTitleAPI(id, sessionId);
+				const data = await generateTitleAPI(id, sessionId, userId ?? null);
 
 				setConversations((prev) =>
 					prev.map((c) => (c.id === id ? { ...c, title: data.title } : c)),
@@ -161,7 +165,7 @@ export function useConversations(sessionId: string): UseConversationsReturn {
 				console.error("Failed to generate title:", err);
 			}
 		},
-		[sessionId],
+		[sessionId, userId],
 	);
 
 	const clearError = useCallback(() => {

@@ -10,16 +10,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Better Auth 認証モデル
+model User {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String         @unique
+  emailVerified Boolean        @default(false)
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  conversations Conversation[]
+}
+
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                 String   @db.ObjectId
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId              String
+  providerId             String
+  accessToken            String?
+  refreshToken           String?
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  scope                  String?
+  idToken                String?
+  password               String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// 会話モデル（認証対応）
 model Conversation {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  sessionId String    @db.String
+  sessionId String?   @db.String  // 匿名セッション用（後方互換）
+  userId    String?   @db.ObjectId  // 認証ユーザー用
+  user      User?     @relation(fields: [userId], references: [id])
   title     String?   @db.String
   messages  Message[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // sessionIdで会話を検索するためのインデックス
+  // sessionIdとuserIdで会話を検索するためのインデックス
   @@index([sessionId])
+  @@index([userId])
 }
 
 model Message {

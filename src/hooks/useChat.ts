@@ -12,6 +12,7 @@ import {
 
 export interface UseChatOptions {
 	sessionId: string;
+	userId?: string | null;
 	conversationId: string | null;
 	settings?: AISettings;
 	sessionLoading?: boolean;
@@ -38,6 +39,7 @@ export interface UseChatReturn {
  */
 export function useChat({
 	sessionId,
+	userId,
 	conversationId,
 	settings,
 	sessionLoading = false,
@@ -61,7 +63,11 @@ export function useChat({
 		const loadHistory = async () => {
 			try {
 				setIsInitialLoading(true);
-				const data = await fetchConversation(conversationId, sessionId);
+				const data = await fetchConversation(
+					conversationId,
+					sessionId,
+					userId ?? null,
+				);
 
 				if (data.messages && Array.isArray(data.messages)) {
 					const loadedMessages: MessageProps[] = data.messages.map(
@@ -88,7 +94,7 @@ export function useChat({
 		};
 
 		loadHistory();
-	}, [sessionId, conversationId]);
+	}, [sessionId, userId, conversationId]);
 
 	const clearMessages = useCallback(() => {
 		setMessages([]);
@@ -134,6 +140,7 @@ export function useChat({
 				await sendChatMessage(
 					content.trim(),
 					sessionId,
+					userId ?? null,
 					conversationId,
 					{
 						onMessage: (data: string) => {
@@ -178,6 +185,7 @@ export function useChat({
 									await generateConversationTitle(
 										info.conversationId,
 										sessionId,
+										userId ?? null,
 									);
 									onTitleGenerated?.();
 								} catch (titleErr) {
@@ -253,7 +261,7 @@ export function useChat({
 
 			try {
 				// メッセージ以降をDBから削除
-				await deleteMessage(messageId, sessionId, true);
+				await deleteMessage(messageId, sessionId, userId ?? null, true);
 
 				// ローカルの状態を更新（編集したメッセージ以降を削除）
 				setMessages((prev) => prev.slice(0, messageIndex));
@@ -272,6 +280,7 @@ export function useChat({
 		},
 		[
 			sessionId,
+			userId,
 			conversationId,
 			messages,
 			isLoading,
@@ -305,7 +314,7 @@ export function useChat({
 
 			try {
 				// アシスタントメッセージ以降をDBから削除
-				await deleteMessage(messageId, sessionId, true);
+				await deleteMessage(messageId, sessionId, userId ?? null, true);
 
 				// ローカルの状態を更新（再生成するメッセージ以降を削除）
 				setMessages((prev) => prev.slice(0, messageIndex));
@@ -324,6 +333,7 @@ export function useChat({
 		},
 		[
 			sessionId,
+			userId,
 			conversationId,
 			messages,
 			isLoading,

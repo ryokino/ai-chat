@@ -16,19 +16,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 		const { id } = await params;
 		const { searchParams } = new URL(request.url);
 		const sessionId = searchParams.get("sessionId");
+		const userId = searchParams.get("userId");
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
+		// userIdまたはsessionIdでの検証（他人の会話を取得できないように）
+		const whereClause = userId ? { id, userId } : { id, sessionId };
+
 		const conversation = await prisma.conversation.findFirst({
-			where: {
-				id,
-				sessionId, // セッションIDでの検証（他人の会話を取得できないように）
-			},
+			where: whereClause,
 			include: {
 				messages: {
 					orderBy: { createdAt: "asc" },
@@ -48,6 +52,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 				conversation: {
 					id: conversation.id,
 					sessionId: conversation.sessionId,
+					userId: conversation.userId,
 					title: conversation.title,
 					createdAt: conversation.createdAt,
 					updatedAt: conversation.updatedAt,
@@ -86,13 +91,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const body = await request.json();
-		const { sessionId, title } = body;
+		const { sessionId, userId, title } = body;
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
 		if (typeof title !== "string") {
@@ -102,9 +110,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 			});
 		}
 
-		// セッションIDでの検証
+		// userIdまたはsessionIdでの検証
+		const whereClause = userId ? { id, userId } : { id, sessionId };
 		const existingConversation = await prisma.conversation.findFirst({
-			where: { id, sessionId },
+			where: whereClause,
 		});
 
 		if (!existingConversation) {
@@ -124,6 +133,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 				conversation: {
 					id: conversation.id,
 					sessionId: conversation.sessionId,
+					userId: conversation.userId,
 					title: conversation.title,
 					createdAt: conversation.createdAt,
 					updatedAt: conversation.updatedAt,
@@ -156,18 +166,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 	try {
 		const { id } = await params;
 		const body = await request.json();
-		const { sessionId } = body;
+		const { sessionId, userId } = body;
 
-		if (!sessionId) {
-			return new Response(JSON.stringify({ error: "sessionId is required" }), {
-				status: 400,
-				headers: { "Content-Type": "application/json" },
-			});
+		if (!sessionId && !userId) {
+			return new Response(
+				JSON.stringify({ error: "sessionId or userId is required" }),
+				{
+					status: 400,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
 		}
 
-		// セッションIDでの検証
+		// userIdまたはsessionIdでの検証
+		const whereClause = userId ? { id, userId } : { id, sessionId };
 		const existingConversation = await prisma.conversation.findFirst({
-			where: { id, sessionId },
+			where: whereClause,
 		});
 
 		if (!existingConversation) {

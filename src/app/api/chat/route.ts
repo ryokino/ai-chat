@@ -27,6 +27,7 @@ interface AISettings {
 interface ChatRequestBody {
 	message: string;
 	sessionId: string;
+	userId?: string; // 追加: 認証済みユーザーのID
 	conversationId?: string;
 	settings?: AISettings;
 }
@@ -34,7 +35,8 @@ interface ChatRequestBody {
 /** メッセージを含む会話オブジェクトの型 */
 type ConversationWithMessages = {
 	id: string;
-	sessionId: string;
+	sessionId: string | null;
+	userId: string | null;
 	title: string | null;
 	messages: { id: string; role: string; content: string; createdAt: Date }[];
 	createdAt: Date;
@@ -62,11 +64,13 @@ type ConversationWithMessages = {
 export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;
-		const { message, sessionId, conversationId, settings } = body;
+		const { message, sessionId, userId, conversationId, settings } = body;
 
-		if (!message || !sessionId) {
+		if (!message || (!sessionId && !userId)) {
 			return new Response(
-				JSON.stringify({ error: "Message and sessionId are required" }),
+				JSON.stringify({
+					error: "Message and sessionId or userId are required",
+				}),
 				{
 					status: 400,
 					headers: { "Content-Type": "application/json" },
@@ -74,11 +78,9 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Rate Limitチェック（sessionIdで識別）
-		const rateLimitResult = checkRateLimit(
-			`chat:${sessionId}`,
-			chatRateLimitConfig,
-		);
+		// Rate Limitチェック（userIdがあればuserId、なければsessionIdで識別）
+		const rateLimitKey = userId ? `chat:user:${userId}` : `chat:${sessionId}`;
+		const rateLimitResult = checkRateLimit(rateLimitKey, chatRateLimitConfig);
 		if (!rateLimitResult.success) {
 			return new Response(JSON.stringify({ error: rateLimitResult.message }), {
 				status: 429,
@@ -93,9 +95,13 @@ export async function POST(request: NextRequest) {
 		let conversation: ConversationWithMessages;
 
 		if (conversationId) {
-			// 既存の会話を取得（セッションIDで検証）
+			// 既存の会話を取得（userIdまたはsessionIdで検証）
+			const whereClause = userId
+				? { id: conversationId, userId }
+				: { id: conversationId, sessionId };
+
 			const existingConversation = await prisma.conversation.findFirst({
-				where: { id: conversationId, sessionId },
+				where: whereClause,
 				include: { messages: true },
 			});
 
@@ -110,9 +116,13 @@ export async function POST(request: NextRequest) {
 			}
 			conversation = existingConversation;
 		} else {
-			// 新しい会話を作成
+			// 新しい会話を作成（userIdまたはsessionIdを使用）
+			const createData = userId
+				? { userId }
+				: { sessionId: sessionId || undefined };
+
 			conversation = await prisma.conversation.create({
-				data: { sessionId },
+				data: createData,
 				include: { messages: true },
 			});
 		}

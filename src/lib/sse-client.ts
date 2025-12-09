@@ -25,7 +25,8 @@ export interface SSEOptions {
 
 export interface ConversationSummary {
 	id: string;
-	sessionId: string;
+	sessionId: string | null;
+	userId: string | null;
 	title: string | null;
 	messageCount: number;
 	createdAt: string;
@@ -154,6 +155,7 @@ export interface AISettings {
  * チャットメッセージをストリーミング送信
  * @param message - 送信するメッセージ
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  * @param conversationId - 会話ID（オプション、指定しない場合は新規作成）
  * @param options - SSEオプション
  * @param settings - AI設定（オプション）
@@ -161,6 +163,7 @@ export interface AISettings {
 export async function sendChatMessage(
 	message: string,
 	sessionId: string,
+	userId: string | null,
 	conversationId: string | null,
 	options: SSEOptions = {},
 	settings?: AISettings,
@@ -173,6 +176,7 @@ export async function sendChatMessage(
 		body: JSON.stringify({
 			message,
 			sessionId,
+			...(userId && { userId }),
 			...(conversationId && { conversationId }),
 			...(settings && { settings }),
 		}),
@@ -184,19 +188,25 @@ export async function sendChatMessage(
 /**
  * 会話一覧を取得
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  */
 export async function fetchConversations(
 	sessionId: string,
+	userId: string | null,
 ): Promise<{ conversations: ConversationSummary[] }> {
-	const response = await fetch(
-		`/api/conversations?sessionId=${encodeURIComponent(sessionId)}`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const params = new URLSearchParams();
+	if (userId) {
+		params.append("userId", userId);
+	} else {
+		params.append("sessionId", sessionId);
+	}
+
+	const response = await fetch(`/api/conversations?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		throw new Error(`Failed to fetch conversations: ${response.status}`);
@@ -209,16 +219,25 @@ export async function fetchConversations(
  * 特定の会話とメッセージを取得
  * @param conversationId - 会話ID
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  */
 export async function fetchConversation(
 	conversationId: string,
 	sessionId: string,
+	userId: string | null,
 ): Promise<{
 	conversation: ConversationSummary;
 	messages: Message[];
 }> {
+	const params = new URLSearchParams();
+	if (userId) {
+		params.append("userId", userId);
+	} else {
+		params.append("sessionId", sessionId);
+	}
+
 	const response = await fetch(
-		`/api/conversations/${conversationId}?sessionId=${encodeURIComponent(sessionId)}`,
+		`/api/conversations/${conversationId}?${params.toString()}`,
 		{
 			method: "GET",
 			headers: {
@@ -237,16 +256,20 @@ export async function fetchConversation(
 /**
  * 新しい会話セッションを作成
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  */
 export async function createConversation(
 	sessionId: string,
+	userId: string | null,
 ): Promise<{ conversation: ConversationSummary }> {
 	const response = await fetch("/api/conversations", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ sessionId }),
+		body: JSON.stringify({
+			...(userId ? { userId } : { sessionId }),
+		}),
 	});
 
 	if (!response.ok) {
@@ -260,17 +283,21 @@ export async function createConversation(
  * 会話を削除
  * @param conversationId - 会話ID
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  */
 export async function deleteConversation(
 	conversationId: string,
 	sessionId: string,
+	userId: string | null,
 ): Promise<void> {
 	const response = await fetch(`/api/conversations/${conversationId}`, {
 		method: "DELETE",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ sessionId }),
+		body: JSON.stringify({
+			...(userId ? { userId } : { sessionId }),
+		}),
 	});
 
 	if (!response.ok) {
@@ -282,11 +309,13 @@ export async function deleteConversation(
  * 会話タイトルを更新
  * @param conversationId - 会話ID
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  * @param title - 新しいタイトル
  */
 export async function updateConversationTitle(
 	conversationId: string,
 	sessionId: string,
+	userId: string | null,
 	title: string,
 ): Promise<{ conversation: ConversationSummary }> {
 	const response = await fetch(`/api/conversations/${conversationId}`, {
@@ -294,7 +323,10 @@ export async function updateConversationTitle(
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ sessionId, title }),
+		body: JSON.stringify({
+			...(userId ? { userId } : { sessionId }),
+			title,
+		}),
 	});
 
 	if (!response.ok) {
@@ -308,17 +340,22 @@ export async function updateConversationTitle(
  * タイトルを自動生成
  * @param conversationId - 会話ID
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  */
 export async function generateConversationTitle(
 	conversationId: string,
 	sessionId: string,
+	userId: string | null,
 ): Promise<{ title: string }> {
 	const response = await fetch("/api/conversations/generate-title", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ conversationId, sessionId }),
+		body: JSON.stringify({
+			conversationId,
+			...(userId ? { userId } : { sessionId }),
+		}),
 	});
 
 	if (!response.ok) {
@@ -332,11 +369,13 @@ export async function generateConversationTitle(
  * メッセージを削除
  * @param messageId - 削除するメッセージのID
  * @param sessionId - セッションID
+ * @param userId - ユーザーID（認証済みの場合）
  * @param deleteAfter - このメッセージ以降を全て削除するか（デフォルト: false）
  */
 export async function deleteMessage(
 	messageId: string,
 	sessionId: string,
+	userId: string | null,
 	deleteAfter = false,
 ): Promise<{ success: boolean; deletedCount: number }> {
 	const response = await fetch(`/api/messages/${messageId}`, {
@@ -344,7 +383,10 @@ export async function deleteMessage(
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ sessionId, deleteAfter }),
+		body: JSON.stringify({
+			...(userId ? { userId } : { sessionId }),
+			deleteAfter,
+		}),
 	});
 
 	if (!response.ok) {
