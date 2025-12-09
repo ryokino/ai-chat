@@ -92,8 +92,8 @@ describe("/api/chat POST", () => {
 
 		// Mock streaming response with fullStream
 		const mockFullStream = (async function* () {
-			yield { type: "text-delta", textDelta: "Hello" };
-			yield { type: "text-delta", textDelta: " there!" };
+			yield { type: "text-delta", payload: { id: "1", text: "Hello" } };
+			yield { type: "text-delta", payload: { id: "2", text: " there!" } };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
@@ -152,7 +152,7 @@ describe("/api/chat POST", () => {
 		});
 
 		const mockFullStream = (async function* () {
-			yield { type: "text-delta", textDelta: "Response" };
+			yield { type: "text-delta", payload: { id: "1", text: "Response" } };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
@@ -204,7 +204,7 @@ describe("/api/chat POST", () => {
 		});
 
 		const mockFullStream = (async function* () {
-			yield { type: "text-delta", textDelta: "Response" };
+			yield { type: "text-delta", payload: { id: "1", text: "Response" } };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
@@ -257,9 +257,9 @@ describe("/api/chat POST", () => {
 		});
 
 		const mockFullStream = (async function* () {
-			yield { type: "text-delta", textDelta: "Hello" };
-			yield { type: "text-delta", textDelta: " " };
-			yield { type: "text-delta", textDelta: "World" };
+			yield { type: "text-delta", payload: { id: "1", text: "Hello" } };
+			yield { type: "text-delta", payload: { id: "2", text: " " } };
+			yield { type: "text-delta", payload: { id: "3", text: "World" } };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({
@@ -336,9 +336,9 @@ describe("/api/chat POST", () => {
 		});
 
 		const mockFullStream = (async function* () {
-			yield { type: "text-delta", textDelta: "Full" };
-			yield { type: "text-delta", textDelta: " " };
-			yield { type: "text-delta", textDelta: "Response" };
+			yield { type: "text-delta", payload: { id: "1", text: "Full" } };
+			yield { type: "text-delta", payload: { id: "2", text: " " } };
+			yield { type: "text-delta", payload: { id: "3", text: "Response" } };
 		})();
 
 		vi.mocked(chatAgent.stream).mockResolvedValue({

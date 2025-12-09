@@ -650,6 +650,27 @@
 
 ---
 
+## Phase 17: Mastra型定義対応
+
+### 17.1 型定義変更対応
+- [x] `src/app/api/chat/route.ts` の修正
+  - `chunk.textDelta` → `chunk.payload.text` に変更（182-183行目）
+  - `chunk.result` → `chunk.payload.result` に変更（187行目）
+- [x] `src/app/api/chat/route.test.ts` のモック修正
+  - 全てのモックストリームを新しい構造に変更（5箇所）
+  - `{ type: "text-delta", textDelta: "..." }` 
+    → `{ type: "text-delta", payload: { id: "...", text: "..." } }`
+- [x] ビルド確認
+  - `pnpm build` でTypeScriptエラーが解消されることを確認
+  - `pnpm test:run` で全テストが通ることを確認（118テスト全て通過）
+- [x] Dockerビルド確認
+  - `docker build -t ai-chat .` でビルドが成功することを確認
+
+**背景:**
+Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミングチャンクの構造が変わりました。`chunk.textDelta` から `chunk.payload.text` へ、`chunk.result` から `chunk.payload.result` への変更が必要でした。
+
+---
+
 ## チェックリスト完了後
 
 - [ ] 全機能の最終動作確認

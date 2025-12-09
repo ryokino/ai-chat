@@ -179,12 +179,12 @@ export async function POST(request: NextRequest) {
 					// Use fullStream to capture both text and tool calls
 					for await (const chunk of stream.fullStream) {
 						if (chunk.type === "text-delta") {
-							fullResponse += chunk.textDelta;
-							const data = JSON.stringify({ content: chunk.textDelta });
+							fullResponse += chunk.payload.text;
+							const data = JSON.stringify({ content: chunk.payload.text });
 							controller.enqueue(encoder.encode(`data: ${data}\n\n`));
 						} else if (chunk.type === "tool-result") {
 							// Capture search results from tool calls
-							const result = chunk.result as {
+							const result = chunk.payload.result as {
 								results?: Array<{
 									title: string;
 									url: string;
