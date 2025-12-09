@@ -268,7 +268,7 @@ export async function POST(request: Request) {
 ANTHROPIC_API_KEY=your_claude_api_key
 
 # MongoDB
-DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/ai-chat?retryWrites=true&w=majority"
+DATABASE_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/ai-chat?retryWrites=true&w=majority"
 
 # Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
