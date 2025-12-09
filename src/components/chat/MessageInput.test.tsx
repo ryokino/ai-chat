@@ -36,7 +36,7 @@ describe("MessageInput component", () => {
 		await user.type(input, "Test message");
 		await user.click(sendButton);
 
-		expect(handleSend).toHaveBeenCalledWith("Test message");
+		expect(handleSend).toHaveBeenCalledWith("Test message", undefined);
 		expect(input).toHaveValue("");
 	});
 
@@ -51,7 +51,7 @@ describe("MessageInput component", () => {
 		// Command+Enterで送信
 		fireEvent.keyDown(input, { key: "Enter", metaKey: true });
 
-		expect(handleSend).toHaveBeenCalledWith("Test message");
+		expect(handleSend).toHaveBeenCalledWith("Test message", undefined);
 	});
 
 	it("should call onSend when Ctrl+Enter is pressed", async () => {
@@ -65,7 +65,7 @@ describe("MessageInput component", () => {
 		// Ctrl+Enterで送信
 		fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
 
-		expect(handleSend).toHaveBeenCalledWith("Test message");
+		expect(handleSend).toHaveBeenCalledWith("Test message", undefined);
 	});
 
 	it("should NOT send message when only Enter is pressed", async () => {
@@ -111,7 +111,7 @@ describe("MessageInput component", () => {
 		// Command+Enterで送信
 		fireEvent.keyDown(input, { key: "Enter", metaKey: true });
 
-		expect(handleSend).toHaveBeenCalledWith("Test message");
+		expect(handleSend).toHaveBeenCalledWith("Test message", undefined);
 	});
 
 	it("should disable input and button when disabled prop is true", () => {

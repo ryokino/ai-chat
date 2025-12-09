@@ -173,7 +173,9 @@ describe("/api/messages/[id] DELETE", () => {
 		const { getAuthenticatedUserId } = await import("@/lib/auth");
 
 		// Mock authentication to return different userId
-		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-777");
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue(
+			"authenticated-user-777",
+		);
 
 		const mockMessage = {
 			id: "msg-123",

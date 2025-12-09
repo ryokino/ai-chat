@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { auth, getAuthenticatedUserId } from "../auth";
 
 describe("getAuthenticatedUserId", () => {
@@ -66,8 +66,12 @@ describe("getAuthenticatedUserId", () => {
 	});
 
 	it("auth.api.getSessionがエラーをスローした場合、nullを返す", async () => {
-		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-		getSessionSpy.mockRejectedValueOnce(new Error("Session verification failed"));
+		const consoleErrorSpy = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => {});
+		getSessionSpy.mockRejectedValueOnce(
+			new Error("Session verification failed"),
+		);
 
 		const request = new Request("http://localhost:3000/api/test");
 		const userId = await getAuthenticatedUserId(request);

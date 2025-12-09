@@ -34,9 +34,7 @@ describe("useConversations hook", () => {
 			conversations: mockConversations,
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		// 初期状態はloading
 		expect(result.current.isLoading).toBe(true);
@@ -105,9 +103,7 @@ describe("useConversations hook", () => {
 			conversation: newConversation,
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -176,9 +172,7 @@ describe("useConversations hook", () => {
 			success: true,
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -227,9 +221,7 @@ describe("useConversations hook", () => {
 			success: true,
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -281,9 +273,7 @@ describe("useConversations hook", () => {
 			},
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -323,9 +313,7 @@ describe("useConversations hook", () => {
 			title: "Generated Title",
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -381,9 +369,7 @@ describe("useConversations hook", () => {
 			conversations: initialConversations,
 		});
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -410,9 +396,7 @@ describe("useConversations hook", () => {
 			new Error("Network error"),
 		);
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.isLoading).toBe(false);
@@ -427,9 +411,7 @@ describe("useConversations hook", () => {
 			new Error("Network error"),
 		);
 
-		const { result } = renderHook(() =>
-			useConversations("test-session", null),
-		);
+		const { result } = renderHook(() => useConversations("test-session", null));
 
 		await waitFor(() => {
 			expect(result.current.error).toBe("Network error");

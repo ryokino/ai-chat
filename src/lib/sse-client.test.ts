@@ -22,12 +22,8 @@ describe("processSSEStream", () => {
 		const encoder = new TextEncoder();
 		const stream = new ReadableStream({
 			start(controller) {
-				controller.enqueue(
-					encoder.encode('data: {"content":"Hello"}\n'),
-				);
-				controller.enqueue(
-					encoder.encode('data: {"content":" World"}\n'),
-				);
+				controller.enqueue(encoder.encode('data: {"content":"Hello"}\n'));
+				controller.enqueue(encoder.encode('data: {"content":" World"}\n'));
 				controller.enqueue(encoder.encode("data: [DONE]\n"));
 				controller.close();
 			},
@@ -133,9 +129,9 @@ describe("processSSEStream", () => {
 			statusText: "Internal Server Error",
 		});
 
-		await expect(
-			processSSEStream(mockResponse, { onError }),
-		).rejects.toThrow("HTTP error! status: 500");
+		await expect(processSSEStream(mockResponse, { onError })).rejects.toThrow(
+			"HTTP error! status: 500",
+		);
 
 		expect(onError).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -167,13 +163,7 @@ describe("sendChatMessage", () => {
 			}),
 		);
 
-		await sendChatMessage(
-			"Hello",
-			"session-123",
-			null,
-			"conv-1",
-			{},
-		);
+		await sendChatMessage("Hello", "session-123", null, "conv-1", {});
 
 		expect(mockFetch).toHaveBeenCalledWith("/api/chat", {
 			method: "POST",
@@ -211,14 +201,7 @@ describe("sendChatMessage", () => {
 			temperature: 0.7,
 		};
 
-		await sendChatMessage(
-			"Hello",
-			"session-123",
-			null,
-			null,
-			{},
-			settings,
-		);
+		await sendChatMessage("Hello", "session-123", null, null, {}, settings);
 
 		expect(mockFetch).toHaveBeenCalledWith("/api/chat", {
 			method: "POST",
@@ -292,9 +275,9 @@ describe("fetchConversations", () => {
 			}),
 		);
 
-		await expect(
-			fetchConversations("session-123", null),
-		).rejects.toThrow("Failed to fetch conversations: 404");
+		await expect(fetchConversations("session-123", null)).rejects.toThrow(
+			"Failed to fetch conversations: 404",
+		);
 	});
 });
 

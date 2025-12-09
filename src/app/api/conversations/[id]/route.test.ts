@@ -60,9 +60,12 @@ describe("/api/conversations/[id] GET", () => {
 			{ method: "GET" },
 		);
 
-		const response = await GET(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await GET(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -115,9 +118,12 @@ describe("/api/conversations/[id] GET", () => {
 			{ method: "GET" },
 		);
 
-		const response = await GET(request as any, {
-			params: Promise.resolve({ id: "conv-2" }),
-		} as any);
+		const response = await GET(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-2" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -140,9 +146,12 @@ describe("/api/conversations/[id] GET", () => {
 			{ method: "GET" },
 		);
 
-		const response = await GET(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await GET(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
@@ -159,9 +168,12 @@ describe("/api/conversations/[id] GET", () => {
 			{ method: "GET" },
 		);
 
-		const response = await GET(request as any, {
-			params: Promise.resolve({ id: "non-existent" }),
-		} as any);
+		const response = await GET(
+			request as any,
+			{
+				params: Promise.resolve({ id: "non-existent" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(404);
@@ -179,9 +191,12 @@ describe("/api/conversations/[id] GET", () => {
 			{ method: "GET" },
 		);
 
-		const response = await GET(request as any, {
-			params: Promise.resolve({ id: "conv-other" }),
-		} as any);
+		const response = await GET(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-other" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(404);
@@ -230,9 +245,12 @@ describe("/api/conversations/[id] PATCH", () => {
 			},
 		);
 
-		const response = await PATCH(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await PATCH(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -256,9 +274,12 @@ describe("/api/conversations/[id] PATCH", () => {
 			},
 		);
 
-		const response = await PATCH(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await PATCH(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
@@ -276,9 +297,12 @@ describe("/api/conversations/[id] PATCH", () => {
 			},
 		);
 
-		const response = await PATCH(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await PATCH(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
@@ -318,9 +342,12 @@ describe("/api/conversations/[id] DELETE", () => {
 			},
 		);
 
-		const response = await DELETE(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await DELETE(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -353,9 +380,12 @@ describe("/api/conversations/[id] DELETE", () => {
 			},
 		);
 
-		const response = await DELETE(request as any, {
-			params: Promise.resolve({ id: "conv-1" }),
-		} as any);
+		const response = await DELETE(
+			request as any,
+			{
+				params: Promise.resolve({ id: "conv-1" }),
+			} as any,
+		);
 		const data = await response.json();
 
 		expect(response.status).toBe(400);
