@@ -1,0 +1,447 @@
+openapi: 3.0.3
+info:
+  title: AI Chat Bot API
+  description: |
+    AIチャットボットのAPI仕様書。
+    Server-Sent Events (SSE) によるストリーミングレスポンスをサポート。
+  version: 0.1.0
+  contact:
+    name: AI Chat Bot
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: ローカル開発サーバー
+
+tags:
+  - name: Chat
+    description: チャットメッセージの送受信
+  - name: Conversations
+    description: 会話の管理
+
+paths:
+  /api/chat:
+    post:
+      tags:
+        - Chat
+      summary: チャットメッセージを送信
+      description: |
+        ユーザーメッセージを送信し、AIからのレスポンスをSSEストリーミングで受信。
+        Rate Limit: 1分あたり10リクエスト
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - sessionId
+              properties:
+                message:
+                  type: string
+                  description: ユーザーのメッセージ
+                  example: "こんにちは、今日の天気について教えてください"
+                sessionId:
+                  type: string
+                  description: ユーザーのセッションID
+                  example: "abc123xyz"
+                conversationId:
+                  type: string
+                  description: 会話ID（既存の会話を続ける場合）
+                  example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: SSEストリーミングレスポンス
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  SSE形式のストリーミングデータ。
+                  各イベントは `data: {...}\n\n` の形式で送信される。
+                example: |
+                  data: {"content":"こんにちは"}
+
+                  data: {"content":"！"}
+
+                  data: {"conversationId":"507f1f77bcf86cd799439011","isNewConversation":true}
+
+                  data: [DONE]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/conversations:
+    get:
+      tags:
+        - Conversations
+      summary: 会話一覧を取得
+      description: セッションIDに紐づく全ての会話を取得
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ユーザーのセッションID
+      responses:
+        '200':
+          description: 会話一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConversationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      tags:
+        - Conversations
+      summary: 新しい会話を作成
+      description: 空の新しい会話セッションを作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+              properties:
+                sessionId:
+                  type: string
+                  description: ユーザーのセッションID
+                  example: "abc123xyz"
+      responses:
+        '201':
+          description: 会話を作成
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: '#/components/schemas/Conversation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/conversations/{id}:
+    get:
+      tags:
+        - Conversations
+      summary: 特定の会話を取得
+      description: 会話の詳細とメッセージ一覧を取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会話ID
+        - name: sessionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ユーザーのセッションID
+      responses:
+        '200':
+          description: 会話の詳細
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: '#/components/schemas/Conversation'
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    patch:
+      tags:
+        - Conversations
+      summary: 会話のタイトルを更新
+      description: 会話のタイトルを手動で更新
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会話ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - title
+              properties:
+                sessionId:
+                  type: string
+                  description: ユーザーのセッションID
+                title:
+                  type: string
+                  description: 新しいタイトル
+                  example: "天気についての会話"
+      responses:
+        '200':
+          description: タイトルを更新
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: '#/components/schemas/Conversation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      tags:
+        - Conversations
+      summary: 会話を削除
+      description: 会話とそれに紐づく全てのメッセージを削除
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会話ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+              properties:
+                sessionId:
+                  type: string
+                  description: ユーザーのセッションID
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/conversations/generate-title:
+    post:
+      tags:
+        - Conversations
+      summary: タイトルを自動生成
+      description: |
+        最初のユーザーメッセージを基にAIがタイトルを自動生成。
+        既にタイトルがある場合は既存のタイトルを返す。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationId
+                - sessionId
+              properties:
+                conversationId:
+                  type: string
+                  description: 会話ID
+                  example: "507f1f77bcf86cd799439011"
+                sessionId:
+                  type: string
+                  description: ユーザーのセッションID
+                  example: "abc123xyz"
+      responses:
+        '200':
+          description: 生成されたタイトル
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: "天気についての質問"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 会話ID (MongoDB ObjectId)
+          example: "507f1f77bcf86cd799439011"
+        sessionId:
+          type: string
+          description: セッションID
+          example: "abc123xyz"
+        title:
+          type: string
+          nullable: true
+          description: 会話のタイトル
+          example: "天気についての会話"
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    ConversationSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 会話ID
+          example: "507f1f77bcf86cd799439011"
+        sessionId:
+          type: string
+          description: セッションID
+          example: "abc123xyz"
+        title:
+          type: string
+          nullable: true
+          description: 会話のタイトル
+          example: "天気についての会話"
+        messageCount:
+          type: integer
+          description: メッセージ数
+          example: 5
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          description: メッセージID
+          example: "507f1f77bcf86cd799439012"
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+          description: メッセージの送信者
+          example: "user"
+        content:
+          type: string
+          description: メッセージ内容
+          example: "こんにちは！"
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: エラーメッセージ
+          example: "sessionId is required"
+
+  responses:
+    BadRequest:
+      description: リクエストが不正
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "sessionId is required"
+
+    NotFound:
+      description: リソースが見つからない
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Conversation not found"
+
+    TooManyRequests:
+      description: Rate Limitを超過
+      headers:
+        X-RateLimit-Remaining:
+          description: 残りリクエスト数
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: リセットまでの秒数
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Rate limit exceeded. Please try again in 30 seconds."
+
+    InternalError:
+      description: サーバー内部エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal server error"

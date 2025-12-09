@@ -1,3 +1,9 @@
+/**
+ * チャット API ルート
+ * SSE ストリーミングでAIレスポンスを返却
+ * @module api/chat
+ */
+
 import type { NextRequest } from "next/server";
 import { chatAgent } from "@/lib/mastra";
 import { prisma } from "@/lib/prisma";
@@ -10,13 +16,14 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/** チャットリクエストボディの型定義 */
 interface ChatRequestBody {
 	message: string;
 	sessionId: string;
 	conversationId?: string;
 }
 
-// Type for conversation with messages included
+/** メッセージを含む会話オブジェクトの型 */
 type ConversationWithMessages = {
 	id: string;
 	sessionId: string;
@@ -26,6 +33,24 @@ type ConversationWithMessages = {
 	updatedAt: Date;
 };
 
+/**
+ * チャットメッセージ送信エンドポイント
+ * ユーザーメッセージを受け取り、AIレスポンスをSSEストリーミングで返却
+ *
+ * @param request - Next.js リクエストオブジェクト
+ * @returns SSE ストリーミングレスポンス
+ *
+ * @example
+ * // クライアントからのリクエスト
+ * fetch("/api/chat", {
+ *   method: "POST",
+ *   body: JSON.stringify({
+ *     message: "こんにちは",
+ *     sessionId: "session-123",
+ *     conversationId: "conv-456", // オプション
+ *   }),
+ * });
+ */
 export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;

@@ -1,5 +1,15 @@
+/**
+ * Mastra エージェント設定
+ * AIチャットボットの振る舞いを定義
+ * @module lib/mastra
+ */
+
 import { Agent } from "@mastra/core/agent";
 
+/**
+ * AIアシスタントのシステムプロンプト
+ * チャットボットの性格、対話スタイル、注意事項を定義
+ */
 const SYSTEM_PROMPT = `あなたは親しみやすく、知識豊富なAIアシスタントです。
 
 ## あなたの特徴
@@ -19,6 +29,13 @@ const SYSTEM_PROMPT = `あなたは親しみやすく、知識豊富なAIアシ�
 - 個人情報の取り扱いには十分注意します
 - 医療・法律・金融などの専門的なアドバイスは、専門家への相談を推奨します`;
 
+/**
+ * AIチャットエージェント
+ * Mastraフレームワークを使用したClaudeベースのチャットボット
+ * @example
+ * import { chatAgent } from "@/lib/mastra";
+ * const stream = await chatAgent.stream([{ role: "user", content: "Hello" }]);
+ */
 export const chatAgent = new Agent({
 	id: "chat-agent",
 	name: "AI Chat Assistant",
@@ -29,6 +46,11 @@ export const chatAgent = new Agent({
 	},
 });
 
+/**
+ * チャットメッセージの型定義
+ * @property role - メッセージの送信者（"user" または "assistant"）
+ * @property content - メッセージの内容
+ */
 export type ChatMessage = {
 	role: "user" | "assistant";
 	content: string;

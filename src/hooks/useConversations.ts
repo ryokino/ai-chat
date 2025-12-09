@@ -1,3 +1,8 @@
+/**
+ * 会話管理カスタムフック
+ * 会話一覧の取得、作成、削除、タイトル更新を管理
+ * @module hooks/useConversations
+ */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -10,6 +15,7 @@ import {
 	updateConversationTitle as updateTitleAPI,
 } from "@/lib/sse-client";
 
+/** useConversationsフックの戻り値の型 */
 export interface UseConversationsReturn {
 	conversations: ConversationSummary[];
 	isLoading: boolean;
@@ -24,6 +30,18 @@ export interface UseConversationsReturn {
 	clearError: () => void;
 }
 
+/**
+ * 会話管理フック
+ * セッションIDに紐づく会話一覧を管理し、CRUD操作を提供
+ * @param sessionId - ユーザーのセッションID
+ * @returns 会話管理に必要な状態と関数
+ * @example
+ * const {
+ *   conversations,
+ *   createNewConversation,
+ *   deleteConversation,
+ * } = useConversations(sessionId);
+ */
 export function useConversations(sessionId: string): UseConversationsReturn {
 	const [conversations, setConversations] = useState<ConversationSummary[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
