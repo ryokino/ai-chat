@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 				conversationId: conversation.id,
 				role: "user",
 				content: message,
-				attachments: attachments || undefined,
+				attachments: (attachments as any) || null,
 			},
 		});
 
