@@ -780,7 +780,7 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 ## Phase 20: テスト拡充
 
 ### 20.1 APIルートテスト
-- [ ] `src/app/api/conversations/[id]/route.test.ts` 作成 (10テストケース)
+- [x] `src/app/api/conversations/[id]/route.test.ts` 作成 (10テストケース)
   - GET: sessionIdで会話取得 (status=200, messages含む)
   - GET: userIdで会話取得 (status=200, messages含む)
   - GET: sessionId/userId両方なし (status=400)
@@ -791,7 +791,7 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
   - PATCH: sessionId/userId両方なし (status=400)
   - DELETE: 会話削除成功 (status=200, prisma.message.deleteManyが先)
   - DELETE: sessionId/userId両方なし (status=400)
-- [ ] `src/app/api/conversations/generate-title/route.test.ts` 作成 (7テストケース)
+- [x] `src/app/api/conversations/generate-title/route.test.ts` 作成 (7テストケース)
   - POST: タイトル生成成功 (status=200, Claude APIで生成)
   - POST: 既存タイトルあり (status=200, Claude API呼ばれない)
   - POST: conversationIdなし (status=400)
@@ -799,19 +799,19 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
   - POST: 会話が見つからない (status=404)
   - POST: メッセージがない (status=400)
   - POST: 長いタイトルは50文字に切り詰め (titleが50文字以下)
-- [ ] 既存APIテストの更新
+- [x] 既存APIテストの更新
   - `src/app/api/chat/route.test.ts`: userIdパラメータテスト追加、sessionId/userId両方なしケース追加
   - `src/app/api/conversations/route.test.ts`: GET/POSTでuserIdテスト追加
 
 ### 20.2 ライブラリテスト
-- [ ] `src/lib/rate-limit.test.ts` 作成 (6テストケース)
+- [x] `src/lib/rate-limit.test.ts` 作成 (6テストケース)
   - checkRateLimit: 初回リクエスト (success=true, remaining=maxRequests-1)
   - checkRateLimit: 制限内リクエスト (success=true, remaining減少)
   - checkRateLimit: 制限超過 (success=false, remaining=0)
   - checkRateLimit: 異なるidentifier (独立カウント)
   - checkRateLimit: ウィンドウ経過後 (リセット確認)
   - getRateLimitHeaders: 正常値 (X-RateLimit-Remaining, X-RateLimit-Reset)
-- [ ] `src/lib/sse-client.test.ts` 作成 (11テストケース)
+- [x] `src/lib/sse-client.test.ts` 作成 (11テストケース)
   - processSSEStream: contentチャンク受信 (onMessage呼び出し確認)
   - processSSEStream: conversationInfo受信 (onConversationInfo呼び出し)
   - processSSEStream: searchSources受信 (onSearchSources呼び出し)
@@ -823,11 +823,11 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
   - fetchConversations: userIdで取得 (userIdが優先される)
   - fetchConversations: エラーレスポンス (Errorをthrow)
   - deleteMessage: deleteAfter=true (deleteAfterがbodyに含まれる)
-- [ ] `src/lib/auth.test.ts` 作成（任意 - スキップ）
+- [x] `src/lib/auth.test.ts` 作成（任意 - スキップ）
   - getBaseURLは内部関数のためテスト困難、優先度低
 
 ### 20.3 フックテスト
-- [ ] `src/hooks/useConversations.test.ts` 作成 (11テストケース)
+- [x] `src/hooks/useConversations.test.ts` 作成 (11テストケース)
   - 初期化時にfetchConversations呼び出し (マウント時API呼び出し)
   - userIdがある場合はuserIdで呼び出し (userIdを優先)
   - createNewConversation (呼び出し確認、リスト追加、activeId設定)
@@ -841,14 +841,43 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
   - clearError (error=null)
 
 ### 20.4 コンポーネントテスト
-- [ ] `src/components/ConversationProvider.test.tsx` 作成 (4テストケース)
+- [x] `src/components/ConversationProvider.test.tsx` 作成 (4テストケース)
   - Provider: 子要素をレンダリング (childrenがDOMに存在)
   - Provider: useSessionの値を伝播 (sessionId, userId, isLoadingが取得可能)
   - Provider: useConversationsの値を伝播 (conversations, functionsが取得可能)
   - useConversation: Provider外で使用 (エラーをthrow)
-- [ ] サイドバーコンポーネントテスト（任意 - スキップ）
+- [x] サイドバーコンポーネントテスト（任意 - スキップ）
   - AppSidebar.tsx, ConversationList.tsx, ConversationItem.tsx, NewConversationButton.tsx
   - E2Eテストで既にカバー済みのため優先度低
+
+---
+
+## Phase 21: セキュリティ強化とコード品質改善
+
+### 21.1 デバッグログ削除
+- [ ] `src/hooks/useChat.ts:213` の `console.log("Message streaming completed")` を削除
+
+### 21.2 サーバーサイド認証検証
+- [ ] `src/lib/auth.ts` に `getAuthenticatedUserId()` ヘルパー関数を追加
+- [ ] `src/app/api/chat/route.ts` に認証検証を追加
+- [ ] `src/app/api/conversations/route.ts` に認証検証を追加
+- [ ] `src/app/api/conversations/[id]/route.ts` に認証検証を追加
+- [ ] `src/app/api/messages/[id]/route.ts` に認証検証を追加
+- [ ] `src/app/api/conversations/generate-title/route.ts` に認証検証を追加
+
+### 21.3 Error Boundary
+- [ ] `src/components/ErrorBoundary.tsx` を作成
+- [ ] `src/app/layout.tsx` に ErrorBoundary を統合
+- [ ] `src/components/__tests__/ErrorBoundary.test.tsx` を作成
+
+### 21.4 テスト
+- [ ] `src/lib/__tests__/auth.test.ts` を作成
+  - `getAuthenticatedUserId()` のテスト
+  - `getBaseURL()` のテスト
+- [ ] 各APIルートテストの更新（認証検証のテストケース追加）
+  - `src/app/api/chat/route.test.ts` - userId不一致時の403テスト
+  - `src/app/api/conversations/route.test.ts` - userId不一致時の403テスト
+  - `src/app/api/messages/[id]/route.test.ts` - userId不一致時の403テスト
 
 ---
 

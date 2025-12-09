@@ -83,9 +83,10 @@ describe("ChatWindow component", () => {
 			clearMessages: vi.fn(),
 		});
 
-		render(<ChatWindow />);
+		const { container } = render(<ChatWindow />);
 
-		expect(screen.getByText("会話履歴を読み込み中...")).toBeInTheDocument();
+		// MessageListSkeleton が表示されることを確認 (CardContentにスケルトンが含まれる)
+		expect(container.querySelector(".space-y-6")).toBeInTheDocument();
 	});
 
 	it("should render MessageList and MessageInput when ready", async () => {
