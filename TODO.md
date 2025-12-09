@@ -758,6 +758,70 @@ Mastra (`@mastra/core@^0.24.6`) の型定義が変更され、ストリーミン
 - [x] **@ryokino**: Google Cloud Console で本番環境のリダイレクトURIを追加:
   - `https://chat.ryokino.com/api/auth/callback/google`
 
+### 19.10 バグ修正
+- [x] `src/components/SessionProvider.tsx` - SessionContextType に user プロパティを追加
+  - UserMenu.tsx が user を使用するため必須
+  - authSession?.user を Context で公開する
+  - Better Authの型推論を使用して型安全に実装
+  - AuthButton, UserMenu のテスト修正（user型にcreatedAt, updatedAt, emailVerifiedを追加）
+
+### 19.11 APIルート userId 対応完了
+- [ ] `src/app/api/messages/[id]/route.ts` - userId 対応
+  - 現在は sessionId のみ対応
+  - 認証ユーザーのメッセージ編集/再生成が失敗する問題を修正
+- [ ] `src/app/api/conversations/generate-title/route.ts` - userId 対応
+  - 現在は sessionId のみ対応
+  - 認証ユーザーのタイトル自動生成が失敗する問題を修正
+
+---
+
+## Phase 20: テスト拡充
+
+### 20.1 APIルートテスト
+- [ ] `src/app/api/conversations/[id]/route.test.ts` 作成
+  - GET: 特定会話の取得（sessionId/userId両方）
+  - PATCH: タイトル更新
+  - DELETE: 会話削除（メッセージも連動削除）
+- [ ] `src/app/api/conversations/generate-title/route.test.ts` 作成
+  - POST: タイトル自動生成
+  - エラーハンドリング
+- [ ] 既存APIテストの更新
+  - `src/app/api/chat/route.test.ts`: userId対応、エラーメッセージ修正
+  - `src/app/api/conversations/route.test.ts`: userId対応
+
+### 20.2 ライブラリテスト
+- [ ] `src/lib/rate-limit.test.ts` 作成
+  - checkRateLimit() 関数
+  - getRateLimitHeaders() 関数
+  - レート制限ストアのクリーンアップ
+- [ ] `src/lib/sse-client.test.ts` 作成
+  - processSSEStream()
+  - sendChatMessage()
+  - fetchConversations()
+  - deleteMessage()
+  - その他全関数
+- [ ] `src/lib/auth.test.ts` 作成（任意）
+  - getBaseURL() 関数のテスト
+
+### 20.3 フックテスト
+- [ ] `src/hooks/useConversations.test.ts` 作成
+  - createNewConversation
+  - deleteConversation
+  - updateTitle
+  - generateTitle
+  - refetch
+  - 状態管理
+
+### 20.4 コンポーネントテスト
+- [ ] `src/components/ConversationProvider.test.tsx` 作成
+  - Context の値が正しく伝播されるか
+  - useConversation フックの動作
+- [ ] サイドバーコンポーネントテスト（任意）
+  - AppSidebar.tsx
+  - ConversationList.tsx
+  - ConversationItem.tsx
+  - NewConversationButton.tsx
+
 ---
 
 ## チェックリスト完了後

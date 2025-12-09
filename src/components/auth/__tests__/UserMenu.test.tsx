@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserMenu } from "../UserMenu";
 
 // SessionProviderのモック
@@ -43,6 +43,9 @@ describe("UserMenu", () => {
 				name: "Test User",
 				email: "test@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
@@ -60,9 +63,12 @@ describe("UserMenu", () => {
 			userId: "user-123",
 			user: {
 				id: "user-123",
-				name: null,
+				name: "",
 				email: "test@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
@@ -85,6 +91,9 @@ describe("UserMenu", () => {
 				name: "John Doe",
 				email: "john@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
@@ -108,6 +117,9 @@ describe("UserMenu", () => {
 				name: "Test User",
 				email: "test@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
@@ -137,6 +149,9 @@ describe("UserMenu", () => {
 				name: "Test User",
 				email: "test@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
