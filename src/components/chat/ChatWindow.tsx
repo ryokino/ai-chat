@@ -2,18 +2,14 @@
 
 import { useConversation } from "@/components/ConversationProvider";
 import { useSession } from "@/components/SessionProvider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useChat } from "@/hooks/useChat";
 import { useSettings } from "@/hooks/useSettings";
 import { MessageInput } from "./MessageInput";
 import { MessageList } from "./MessageList";
 import { MessageListSkeleton } from "./MessageListSkeleton";
 
-interface ChatWindowProps {
-	title?: string;
-}
-
-export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
+export function ChatWindow() {
 	const {
 		sessionId,
 		userId,
@@ -59,9 +55,6 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	if (isSessionLoading) {
 		return (
 			<Card className="flex h-full flex-col">
-				<CardHeader>
-					<CardTitle>{title}</CardTitle>
-				</CardHeader>
 				<CardContent className="flex flex-1 items-center justify-center">
 					<p className="text-muted-foreground">セッション初期化中...</p>
 				</CardContent>
@@ -73,9 +66,6 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 	if (isInitialLoading) {
 		return (
 			<Card className="flex h-full flex-col">
-				<CardHeader className="border-b shrink-0">
-					<CardTitle>{title}</CardTitle>
-				</CardHeader>
 				<CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
 					<MessageListSkeleton />
 				</CardContent>
@@ -85,9 +75,6 @@ export function ChatWindow({ title = "AI Chat" }: ChatWindowProps) {
 
 	return (
 		<Card className="flex h-full flex-col">
-			<CardHeader className="border-b shrink-0">
-				<CardTitle>{title}</CardTitle>
-			</CardHeader>
 			<CardContent className="flex flex-1 flex-col p-0 overflow-hidden relative">
 				<div className="flex-1 overflow-hidden">
 					<MessageList

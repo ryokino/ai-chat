@@ -15,7 +15,6 @@ import {
 	SidebarGroupLabel,
 	SidebarHeader,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { AISettings } from "@/lib/settings";
 import type { ConversationSummary } from "@/lib/sse-client";
 import { ConversationList } from "./ConversationList";
@@ -51,7 +50,7 @@ export function AppSidebar({
 			<SidebarHeader className="border-b">
 				<div className="flex items-center gap-2 px-2 py-2">
 					<Bot className="h-6 w-6 text-primary" />
-					<span className="font-semibold">AI Chat</span>
+					<span className="font-semibold">ドクターT</span>
 				</div>
 			</SidebarHeader>
 

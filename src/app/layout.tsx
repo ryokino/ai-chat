@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "AI Chat Bot",
+	title: "ドクターT",
 	description:
 		"エンターテイメント向けAIチャットボット - Claudeとの自由な会話を楽しもう",
 };

@@ -117,7 +117,11 @@ export function useChat({
 
 	const sendMessage = useCallback(
 		async (content: string, attachments?: ImageAttachment[]) => {
-			if ((!sessionId && !userId) || isLoading || (!content.trim() && !attachments?.length))
+			if (
+				(!sessionId && !userId) ||
+				isLoading ||
+				(!content.trim() && !attachments?.length)
+			)
 				return;
 
 			const userMessage: MessageProps = {

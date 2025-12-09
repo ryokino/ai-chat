@@ -22,7 +22,7 @@ export default function Home() {
 	return (
 		<AppLayout>
 			<div className="flex h-[calc(100vh-56px)] flex-col md:h-screen">
-				<ChatWindow title="AI Chat Bot" />
+				<ChatWindow />
 			</div>
 		</AppLayout>
 	);

@@ -53,7 +53,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 			<SidebarInset>
 				<header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4">
 					<SidebarTrigger />
-					<span className="font-semibold">AI Chat</span>
+					<span className="font-semibold">ドクターT</span>
 				</header>
 				<main className="flex-1">{children}</main>
 			</SidebarInset>
