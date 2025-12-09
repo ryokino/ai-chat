@@ -1,12 +1,20 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+	type authClient,
+	useSession as useBetterAuthSession,
+} from "@/lib/auth-client";
 import { getSessionId } from "@/lib/session";
-import { useSession as useBetterAuthSession } from "@/lib/auth-client";
+
+// Better Authのユーザー型を推論
+type BetterAuthSession = typeof authClient.$Infer.Session;
+type User = BetterAuthSession["user"];
 
 interface SessionContextType {
 	sessionId: string;
 	userId: string | null;
+	user: User | null;
 	isLoading: boolean;
 	isAuthenticated: boolean;
 }
@@ -14,6 +22,7 @@ interface SessionContextType {
 const SessionContext = createContext<SessionContextType>({
 	sessionId: "",
 	userId: null,
+	user: null,
 	isLoading: true,
 	isAuthenticated: false,
 });
@@ -69,11 +78,12 @@ export function SessionProvider({ children }: SessionProviderProps) {
 	}, [authError]);
 
 	const userId = authSession?.user?.id ?? null;
+	const user = authSession?.user ?? null;
 	const isAuthenticated = !!authSession?.user;
 
 	return (
 		<SessionContext.Provider
-			value={{ sessionId, userId, isLoading, isAuthenticated }}
+			value={{ sessionId, userId, user, isLoading, isAuthenticated }}
 		>
 			{children}
 		</SessionContext.Provider>

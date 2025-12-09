@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthButton } from "../AuthButton";
 
 // SessionProviderのモック
@@ -46,6 +46,9 @@ describe("AuthButton", () => {
 				name: "Test User",
 				email: "test@example.com",
 				image: null,
+				emailVerified: true,
+				createdAt: new Date("2025-01-01"),
+				updatedAt: new Date("2025-01-01"),
 			},
 			isAuthenticated: true,
 			isLoading: false,
