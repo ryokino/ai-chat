@@ -11,6 +11,11 @@ vi.mock("@/lib/prisma", () => ({
 	},
 }));
 
+// 認証のモック
+vi.mock("@/lib/auth", () => ({
+	getAuthenticatedUserId: vi.fn(),
+}));
+
 describe("/api/conversations GET", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -128,6 +133,10 @@ describe("/api/conversations GET", () => {
 
 	it("should return conversations with userId", async () => {
 		const { prisma } = await import("@/lib/prisma");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-123");
 
 		const mockConversations = [
 			{
@@ -165,6 +174,10 @@ describe("/api/conversations GET", () => {
 
 	it("should prioritize userId over sessionId when both are provided", async () => {
 		const { prisma } = await import("@/lib/prisma");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-123");
 
 		vi.mocked(prisma.conversation.findMany).mockResolvedValue([]);
 
@@ -181,6 +194,26 @@ describe("/api/conversations GET", () => {
 			include: { _count: { select: { messages: true } } },
 			orderBy: { updatedAt: "desc" },
 		});
+	});
+
+	it("should return 403 when userId does not match authenticated session in GET", async () => {
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return different userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-999");
+
+		const request = new Request(
+			"http://localhost:3000/api/conversations?userId=spoofed-user-123",
+			{ method: "GET" },
+		);
+
+		const response = await GET(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(403);
+		expect(data.error).toBe(
+			"Unauthorized: userId does not match authenticated session",
+		);
 	});
 });
 
@@ -314,6 +347,10 @@ describe("/api/conversations POST", () => {
 
 	it("should create conversation with userId", async () => {
 		const { prisma } = await import("@/lib/prisma");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-456");
 
 		const mockConversation = {
 			id: "conv-user-1",
@@ -346,6 +383,10 @@ describe("/api/conversations POST", () => {
 
 	it("should prioritize userId over sessionId when both are provided in POST", async () => {
 		const { prisma } = await import("@/lib/prisma");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-789");
 
 		const mockConversation = {
 			id: "conv-priority",
@@ -375,5 +416,28 @@ describe("/api/conversations POST", () => {
 		expect(prisma.conversation.create).toHaveBeenCalledWith({
 			data: { userId: "user-789" },
 		});
+	});
+
+	it("should return 403 when userId does not match authenticated session in POST", async () => {
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return different userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-888");
+
+		const request = new Request("http://localhost:3000/api/conversations", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				userId: "spoofed-user-456",
+			}),
+		});
+
+		const response = await POST(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(403);
+		expect(data.error).toBe(
+			"Unauthorized: userId does not match authenticated session",
+		);
 	});
 });

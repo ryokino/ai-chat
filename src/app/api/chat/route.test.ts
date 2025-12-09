@@ -21,6 +21,11 @@ vi.mock("@/lib/mastra", () => ({
 	},
 }));
 
+// 認証のモック
+vi.mock("@/lib/auth", () => ({
+	getAuthenticatedUserId: vi.fn(),
+}));
+
 describe("/api/chat POST", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -428,6 +433,10 @@ describe("/api/chat POST", () => {
 	it("should accept userId instead of sessionId", async () => {
 		const { prisma } = await import("@/lib/prisma");
 		const { chatAgent } = await import("@/lib/mastra");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return the same userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("user-123");
 
 		const mockConversation = {
 			id: "conv-user-1",
@@ -473,6 +482,87 @@ describe("/api/chat POST", () => {
 		expect(response.status).toBe(200);
 		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
 			where: { id: "conv-user-1", userId: "user-123" },
+			include: { messages: true },
+		});
+	});
+
+	it("should return 403 when userId does not match authenticated session", async () => {
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return different userId
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue("authenticated-user-456");
+
+		const request = new Request("http://localhost:3000/api/chat", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				message: "Hello",
+				userId: "spoofed-user-123", // Different from authenticated userId
+				conversationId: "conv-1",
+			}),
+		});
+
+		const response = await POST(request as any);
+		const data = await response.json();
+
+		expect(response.status).toBe(403);
+		expect(data.error).toBe(
+			"Unauthorized: userId does not match authenticated session",
+		);
+	});
+
+	it("should allow unauthenticated users with sessionId", async () => {
+		const { prisma } = await import("@/lib/prisma");
+		const { chatAgent } = await import("@/lib/mastra");
+		const { getAuthenticatedUserId } = await import("@/lib/auth");
+
+		// Mock authentication to return null (unauthenticated)
+		vi.mocked(getAuthenticatedUserId).mockResolvedValue(null);
+
+		const mockConversation = {
+			id: "conv-session-1",
+			sessionId: "session-123",
+			userId: null,
+			title: null,
+			messages: [],
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+
+		vi.mocked(prisma.conversation.findFirst).mockResolvedValue(
+			mockConversation,
+		);
+		vi.mocked(prisma.message.create).mockResolvedValue({
+			id: "msg-1",
+			conversationId: "conv-session-1",
+			role: "user",
+			content: "Hello",
+			createdAt: new Date(),
+		});
+
+		const mockFullStream = (async function* () {
+			yield { type: "text-delta", payload: { id: "1", text: "Response" } };
+		})();
+
+		vi.mocked(chatAgent.stream).mockResolvedValue({
+			fullStream: mockFullStream,
+		} as any);
+
+		const request = new Request("http://localhost:3000/api/chat", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				message: "Hello",
+				sessionId: "session-123",
+				conversationId: "conv-session-1",
+			}),
+		});
+
+		const response = await POST(request as any);
+
+		expect(response.status).toBe(200);
+		expect(prisma.conversation.findFirst).toHaveBeenCalledWith({
+			where: { id: "conv-session-1", sessionId: "session-123" },
 			include: { messages: true },
 		});
 	});

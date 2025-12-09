@@ -12,6 +12,7 @@ import {
 	checkRateLimit,
 	getRateLimitHeaders,
 } from "@/lib/rate-limit";
+import { getAuthenticatedUserId } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,22 @@ export async function POST(request: NextRequest) {
 	try {
 		const body = (await request.json()) as ChatRequestBody;
 		const { message, sessionId, userId, conversationId, settings } = body;
+
+		// サーバーサイドで認証検証
+		const authenticatedUserId = await getAuthenticatedUserId(request);
+
+		// userIdが指定されている場合、認証セッションと一致するか確認
+		if (userId && userId !== authenticatedUserId) {
+			return new Response(
+				JSON.stringify({
+					error: "Unauthorized: userId does not match authenticated session",
+				}),
+				{
+					status: 403,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		}
 
 		if (!message || (!sessionId && !userId)) {
 			return new Response(
