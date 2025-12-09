@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import Anthropic from "@anthropic-ai/sdk";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Anthropic SDKをモック
 vi.mock("@anthropic-ai/sdk", () => {
@@ -19,11 +19,9 @@ describe("claude", () => {
 		process.env.ANTHROPIC_API_KEY = "test-api-key-12345";
 
 		const mockAnthropicInstance = { test: "instance" };
-		vi.mocked(Anthropic).mockImplementation(
-			function (this: any) {
-				return mockAnthropicInstance;
-			} as any,
-		);
+		vi.mocked(Anthropic).mockImplementation(function (this: any) {
+			return mockAnthropicInstance;
+		} as any);
 
 		const { anthropic } = await import("../claude");
 
@@ -41,11 +39,9 @@ describe("claude", () => {
 		delete process.env.ANTHROPIC_API_KEY;
 
 		const mockAnthropicInstance = { test: "instance" };
-		vi.mocked(Anthropic).mockImplementation(
-			function (this: any) {
-				return mockAnthropicInstance;
-			} as any,
-		);
+		vi.mocked(Anthropic).mockImplementation(function (this: any) {
+			return mockAnthropicInstance;
+		} as any);
 
 		const { anthropic } = await import("../claude");
 
@@ -59,11 +55,9 @@ describe("claude", () => {
 	});
 
 	it("CLAUDE_MODEL が正しい値を持つ", async () => {
-		vi.mocked(Anthropic).mockImplementation(
-			function (this: any) {
-				return {};
-			} as any,
-		);
+		vi.mocked(Anthropic).mockImplementation(function (this: any) {
+			return {};
+		} as any);
 
 		const { CLAUDE_MODEL } = await import("../claude");
 
@@ -73,11 +67,9 @@ describe("claude", () => {
 
 	it("anthropic と CLAUDE_MODEL がエクスポートされる", async () => {
 		const mockAnthropicInstance = { test: "instance" };
-		vi.mocked(Anthropic).mockImplementation(
-			function (this: any) {
-				return mockAnthropicInstance;
-			} as any,
-		);
+		vi.mocked(Anthropic).mockImplementation(function (this: any) {
+			return mockAnthropicInstance;
+		} as any);
 
 		const claudeModule = await import("../claude");
 

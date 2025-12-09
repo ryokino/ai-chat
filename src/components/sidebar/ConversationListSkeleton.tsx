@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ConversationListSkeleton() {
 	return (

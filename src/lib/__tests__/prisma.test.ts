@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PrismaClient } from "@prisma/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // PrismaClientをモック
 vi.mock("@prisma/client", () => ({
@@ -28,11 +28,9 @@ describe("prisma", () => {
 
 	it("PrismaClient インスタンスが作成される", async () => {
 		const mockPrismaInstance = {};
-		vi.mocked(PrismaClient).mockImplementation(
-			function (this: any) {
-				return mockPrismaInstance;
-			} as any,
-		);
+		vi.mocked(PrismaClient).mockImplementation(function (this: any) {
+			return mockPrismaInstance;
+		} as any);
 
 		const { prisma } = await import("../prisma");
 
@@ -52,11 +50,9 @@ describe("prisma", () => {
 		process.env.NODE_ENV = "development";
 
 		const mockPrismaInstance = {};
-		vi.mocked(PrismaClient).mockImplementation(
-			function (this: any) {
-				return mockPrismaInstance;
-			} as any,
-		);
+		vi.mocked(PrismaClient).mockImplementation(function (this: any) {
+			return mockPrismaInstance;
+		} as any);
 
 		const { prisma } = await import("../prisma");
 
@@ -72,11 +68,9 @@ describe("prisma", () => {
 		process.env.NODE_ENV = "production";
 
 		const mockPrismaInstance = {};
-		vi.mocked(PrismaClient).mockImplementation(
-			function (this: any) {
-				return mockPrismaInstance;
-			} as any,
-		);
+		vi.mocked(PrismaClient).mockImplementation(function (this: any) {
+			return mockPrismaInstance;
+		} as any);
 
 		await import("../prisma");
 
@@ -91,9 +85,7 @@ describe("prisma", () => {
 		const globalForPrisma = global as unknown as { prisma: PrismaClient };
 		globalForPrisma.prisma = existingPrismaInstance as any;
 
-		vi.mocked(PrismaClient).mockImplementation(
-			() => ({ new: true }) as any,
-		);
+		vi.mocked(PrismaClient).mockImplementation(() => ({ new: true }) as any);
 
 		const { prisma } = await import("../prisma");
 
@@ -105,11 +97,9 @@ describe("prisma", () => {
 
 	it("dotenv.config が .env.local で呼ばれる", async () => {
 		const mockPrismaInstance = {};
-		vi.mocked(PrismaClient).mockImplementation(
-			function (this: any) {
-				return mockPrismaInstance;
-			} as any,
-		);
+		vi.mocked(PrismaClient).mockImplementation(function (this: any) {
+			return mockPrismaInstance;
+		} as any);
 
 		const dotenv = await import("dotenv");
 
